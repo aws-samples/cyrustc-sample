@@ -4,7 +4,7 @@ This repository contains various code samples and examples demonstrating differe
 
 ## Directory Structure
 
-### blog-optimizing-elemental-medialive-schedule
+### elemental-medialive-schedule-automation
 A CDK project that demonstrates how to automate AWS Elemental MediaLive channel scheduling. Features include:
 - Automated start/stop of MediaLive channels using EventBridge Scheduler
 - DynamoDB for schedule management
