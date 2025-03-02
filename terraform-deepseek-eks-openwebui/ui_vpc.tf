@@ -1,5 +1,5 @@
 module "frontend_vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+  source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
   providers = {
     aws = aws.frontend
@@ -12,8 +12,8 @@ module "frontend_vpc" {
   private_subnets = [for i, az in var.frontend_vpc_azs : cidrsubnet(var.frontend_vpc_cidr, 4, i)]
   public_subnets  = [for i, az in var.frontend_vpc_azs : cidrsubnet(var.frontend_vpc_cidr, 4, i + 3)]
 
-  enable_nat_gateway = true
-  single_nat_gateway = false
+  enable_nat_gateway     = true
+  single_nat_gateway     = false
   one_nat_gateway_per_az = true
 
   enable_dns_hostnames = true
@@ -29,12 +29,12 @@ module "frontend_vpc" {
   })
 
   private_subnet_tags = {
-    "kubernetes.io/role/internal-elb" = 1
-    "kubernetes.io/cluster/${var.frontend_vpc_name}-cluster" = "shared"
+    "kubernetes.io/role/internal-elb"                    = 1
+    "kubernetes.io/cluster/${var.frontend_cluster_name}" = "shared"
   }
 
   public_subnet_tags = {
-    "kubernetes.io/role/elb" = 1
-    "kubernetes.io/cluster/${var.frontend_vpc_name}-cluster" = "shared"
+    "kubernetes.io/role/elb"                             = 1
+    "kubernetes.io/cluster/${var.frontend_cluster_name}" = "shared"
   }
-} 
+}

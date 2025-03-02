@@ -20,7 +20,7 @@ terraform {
 # Default provider configuration
 provider "aws" {
   region = var.llm_vpc_region
-  
+
   default_tags {
     tags = var.tags
   }
@@ -30,7 +30,7 @@ provider "aws" {
 provider "aws" {
   alias  = "llm"
   region = var.llm_vpc_region
-  
+
   default_tags {
     tags = var.tags
   }
@@ -40,7 +40,7 @@ provider "aws" {
 provider "aws" {
   alias  = "frontend"
   region = var.frontend_vpc_region
-  
+
   default_tags {
     tags = var.tags
   }
@@ -56,7 +56,7 @@ provider "helm" {
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
-      args = ["eks", "get-token", "--cluster-name", module.llm_eks.cluster_name, "--region", var.llm_vpc_region]
+      args        = ["eks", "get-token", "--cluster-name", module.llm_eks.cluster_name, "--region", var.llm_vpc_region]
     }
   }
 }
@@ -71,37 +71,37 @@ provider "helm" {
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
-      args = ["eks", "get-token", "--cluster-name", module.frontend_eks.cluster_name, "--region", var.frontend_vpc_region]
+      args        = ["eks", "get-token", "--cluster-name", module.frontend_eks.cluster_name, "--region", var.frontend_vpc_region]
     }
   }
 }
 
 # LLM EKS Kubectl Provider
 provider "kubectl" {
-  alias               = "llm"
-  apply_retry_count   = 5
-  host               = module.llm_eks.cluster_endpoint
+  alias                  = "llm"
+  apply_retry_count      = 5
+  host                   = module.llm_eks.cluster_endpoint
   cluster_ca_certificate = base64decode(module.llm_eks.cluster_certificate_authority_data)
-  load_config_file   = false
+  load_config_file       = false
 
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "aws"
-    args = ["eks", "get-token", "--cluster-name", module.llm_eks.cluster_name, "--region", var.llm_vpc_region]
+    args        = ["eks", "get-token", "--cluster-name", module.llm_eks.cluster_name, "--region", var.llm_vpc_region]
   }
 }
 
 # Frontend EKS Kubectl Provider
 provider "kubectl" {
-  alias               = "frontend"
-  apply_retry_count   = 5
-  host               = module.frontend_eks.cluster_endpoint
+  alias                  = "frontend"
+  apply_retry_count      = 5
+  host                   = module.frontend_eks.cluster_endpoint
   cluster_ca_certificate = base64decode(module.frontend_eks.cluster_certificate_authority_data)
-  load_config_file   = false
+  load_config_file       = false
 
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "aws"
-    args = ["eks", "get-token", "--cluster-name", module.frontend_eks.cluster_name, "--region", var.frontend_vpc_region]
+    args        = ["eks", "get-token", "--cluster-name", module.frontend_eks.cluster_name, "--region", var.frontend_vpc_region]
   }
 } 

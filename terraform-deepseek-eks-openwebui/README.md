@@ -6,7 +6,8 @@ This project demonstrates how to deploy DeepSeek LLM and OpenWebUI on separate A
 
 The solution implements the following architecture:
 
-- **LLM Infrastructure**: 
+- **LLM Infrastructure**:
+
   - EKS cluster optimized for running DeepSeek LLM
   - Dedicated VPC in us-west-2 region
   - Auto-scaling node groups for compute-intensive workloads
@@ -60,6 +61,7 @@ terraform apply
 ```
 
 After deployment, Terraform will output:
+
 - VPC IDs and CIDR ranges
 - EKS cluster endpoints
 - Security group IDs
@@ -74,3 +76,22 @@ aws eks update-kubeconfig --region us-west-2 --name llm-eks-cluster
 # For Frontend cluster
 aws eks update-kubeconfig --region ap-east-1 --name frontend-eks-cluster
 ```
+
+## Known Limitations and TODOs
+
+### OpenWebUI Scaling Limitation
+
+**Issue**: OpenWebUI currently cannot be scaled to more than 1 replica because the config endpoint will result in 500 errors when multiple pods are running.
+
+**Status**: To be investigated.
+
+**Workaround**: Keep the replica count at 1 in the OpenWebUI deployment configuration. If you need higher availability, consider using pod disruption budgets and robust health checks instead of increasing replicas.
+
+```terraform
+spec = {
+  replicas = 1  # Do not increase this value until the scaling issue is resolved
+  ...
+}
+```
+
+This limitation affects the high availability of the frontend but does not impact the functionality of the LLM processing.

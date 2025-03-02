@@ -109,4 +109,10 @@ output "frontend_vpc_flow_log_id" {
 output "alb_dns_name" {
   description = "Instructions to get the ALB DNS name"
   value       = "To get the ALB DNS name, run: kubectl get ingress -n llm llm-ingress -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'"
+}
+
+# OpenWebUI Output
+output "openwebui_dns_name" {
+  description = "DNS name of the OpenWebUI ALB"
+  value       = "To get the OpenWebUI DNS name, run: kubectl get ingress -n openwebui openwebui-ingress -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'"
 } 

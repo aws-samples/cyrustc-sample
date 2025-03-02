@@ -108,4 +108,11 @@ variable "tags" {
     Project     = "deepseek-eks-openwebui"
     Terraform   = "true"
   }
-} 
+}
+
+# LLM ALB DNS Name
+variable "llm_alb_dns_name" {
+  description = "DNS name of the LLM ALB ingress (needed for OpenWebUI to connect to LLM API)"
+  type        = string
+  default     = "k8s-llm-llmingre-62ac74faf5-535992166.us-west-2.elb.amazonaws.com"
+}
