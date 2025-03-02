@@ -104,4 +104,4 @@ provider "kubectl" {
     command     = "aws"
     args        = ["eks", "get-token", "--cluster-name", module.frontend_eks.cluster_name, "--region", var.frontend_vpc_region]
   }
-} 
+}

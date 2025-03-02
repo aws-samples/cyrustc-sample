@@ -25,19 +25,11 @@ resource "kubectl_manifest" "openwebui_config" {
       namespace = "openwebui"
     }
     data = {
-      "WEB_TITLE"            = "DeepSeek LLM UI"
-      "DEFAULT_MODELS"       = var.llm_model
-      "DEFAULT_MODEL"        = var.llm_model
-      "API_BASE"             = "http://${var.llm_alb_dns_name}/v1"
-      "OPENAI_API_BASE"      = "http://${var.llm_alb_dns_name}/v1"
-      "OPENAI_API_KEY"       = "sk-no-key-required"
-      "INIT_CREDENTIAL"      = "admin:password123" # Change in production
-      "ENABLE_MODEL_SWITCH"  = "true"
-      "ENABLE_SYSTEM_PROMPT" = "true"
-      "OLLAMA_BASE_URL"      = ""       # Disable Ollama since we're using OpenAI API
-      "DEFAULT_ENDPOINT"     = "openai" # Use OpenAI endpoint instead of Ollama
-      "OPENAI_API_HOST"      = var.llm_alb_dns_name
-      "ALLOWED_ORIGINS"      = "*" # For cross-region communication
+      "WEB_TITLE"       = "DeepSeek LLM UI"
+      "DEFAULT_MODELS"  = var.llm_model
+      "DEFAULT_MODEL"   = var.llm_model
+      "OLLAMA_BASE_URL" = "http://${var.llm_alb_dns_name}/v1"
+      "ALLOWED_ORIGINS" = "*" # For cross-region communication
     }
   })
 
