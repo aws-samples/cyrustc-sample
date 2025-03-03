@@ -25,11 +25,19 @@ resource "kubectl_manifest" "openwebui_config" {
       namespace = "openwebui"
     }
     data = {
-      "WEB_TITLE"       = "DeepSeek LLM UI"
-      "DEFAULT_MODELS"  = var.llm_model
-      "DEFAULT_MODEL"   = var.llm_model
-      "OLLAMA_BASE_URL" = "http://${var.llm_alb_dns_name}/v1"
-      "ALLOWED_ORIGINS" = "*" # For cross-region communication
+      "WEB_TITLE"            = "DeepSeek LLM UI"
+      "DEFAULT_MODELS"       = var.llm_model
+      "DEFAULT_MODEL"        = var.llm_model
+      "API_BASE"             = "http://${var.llm_alb_dns_name}/v1"
+      "OPENAI_API_BASE"      = "http://${var.llm_alb_dns_name}/v1"
+      "OPENAI_API_KEY"       = "sk-no-key-required"
+      "INIT_CREDENTIAL"      = "admin:password123" # Change in production
+      "ENABLE_MODEL_SWITCH"  = "true"
+      "ENABLE_SYSTEM_PROMPT" = "true"
+      "OLLAMA_BASE_URL"      = "http://${var.llm_alb_dns_name}/v1"
+      "DEFAULT_ENDPOINT"     = "openai" # Use OpenAI endpoint instead of Ollama
+      "OPENAI_API_HOST"      = var.llm_alb_dns_name
+      "ALLOWED_ORIGINS"      = "*" # For cross-region communication
     }
   })
 
@@ -376,4 +384,28 @@ resource "kubectl_manifest" "openwebui_ingress" {
     kubectl_manifest.openwebui_service,
     kubectl_manifest.openwebui_deployment
   ]
+}
+
+# EBS Storage Class for Frontend EKS
+resource "kubectl_manifest" "frontend_ebs_storage_class" {
+  provider = kubectl.frontend
+
+  yaml_body = yamlencode({
+    apiVersion = "storage.k8s.io/v1"
+    kind       = "StorageClass"
+    metadata = {
+      name = "ebs-sc"
+      annotations = {
+        "storageclass.kubernetes.io/is-default-class" = "true"
+      }
+    }
+    provisioner       = "ebs.csi.eks.amazonaws.com"
+    volumeBindingMode = "WaitForFirstConsumer"
+    parameters = {
+      type      = "gp3"
+      encrypted = "true"
+    }
+  })
+
+  depends_on = [module.frontend_eks]
 }

@@ -13,7 +13,7 @@ resource "kubectl_manifest" "llm_namespace" {
   depends_on = [module.llm_eks]
 }
 
-# LLM Service
+# LLM Service with NLB
 resource "kubectl_manifest" "llm_service" {
   provider = kubectl.llm
 
@@ -26,20 +26,32 @@ resource "kubectl_manifest" "llm_service" {
       labels = {
         app = "llm"
       }
+      annotations = {
+        # NLB-specific annotations for EKS Auto Mode
+        "service.beta.kubernetes.io/aws-load-balancer-scheme"                   = "internet-facing"
+        "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"          = "ip"
+        "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol"     = "HTTP"
+        "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"         = "/health"
+        "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"         = "8000"
+        "service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags" = join(",", [for k, v in var.tags : "${k}=${v}"])
+        "service.beta.kubernetes.io/aws-load-balancer-ip-address-type"          = "ipv4"
+      }
     }
     spec = {
       ports = [
         {
-          port        = 8000
-          targetPort  = 8000
-          protocol    = "TCP"
-          name        = "http"
+          port       = 80
+          targetPort = 8000
+          protocol   = "TCP"
+          name       = "http"
         }
       ]
       selector = {
         app = "llm"
       }
-      type = "ClusterIP"
+      type = "LoadBalancer"
+      # EKS Auto Mode makes this the default, but explicitly including for clarity
+      loadBalancerClass = "eks.amazonaws.com/nlb"
     }
   })
 
@@ -48,101 +60,9 @@ resource "kubectl_manifest" "llm_service" {
   ]
 }
 
-# IngressClassParams for ALB
-resource "kubectl_manifest" "alb_ingress_class_params" {
-  provider = kubectl.llm
-  yaml_body = yamlencode({
-    apiVersion = "eks.amazonaws.com/v1"
-    kind       = "IngressClassParams"
-    metadata = {
-      name = "alb"
-    }
-    spec = {
-      scheme = "internet-facing"
-      healthCheck = {
-        path = "/health"
-        port = 8000
-        protocol = "HTTP"
-        intervalSeconds = 15
-        timeoutSeconds = 5
-        healthyThresholdCount = 2
-        unhealthyThresholdCount = 3
-      }
-    }
-  })
-
-  depends_on = [module.llm_eks]
-}
-
-# IngressClass for ALB
-resource "kubectl_manifest" "alb_ingress_class" {
-  provider = kubectl.llm
-  yaml_body = yamlencode({
-    apiVersion = "networking.k8s.io/v1"
-    kind       = "IngressClass"
-    metadata = {
-      name = "alb"
-      annotations = {
-        "ingressclass.kubernetes.io/is-default-class" = "true"
-      }
-    }
-    spec = {
-      controller = "eks.amazonaws.com/alb"
-      parameters = {
-        apiGroup = "eks.amazonaws.com"
-        kind     = "IngressClassParams"
-        name     = "alb"
-      }
-    }
-  })
-
-  depends_on = [kubectl_manifest.alb_ingress_class_params]
-}
-
-# Ingress for LLM Service
-resource "kubectl_manifest" "llm_ingress" {
-  provider = kubectl.llm
-  yaml_body = yamlencode({
-    apiVersion = "networking.k8s.io/v1"
-    kind       = "Ingress"
-    metadata = {
-      name      = "llm-ingress"
-      namespace = "llm"
-    }
-    spec = {
-      ingressClassName = "alb"
-      rules = [
-        {
-          http = {
-            paths = [
-              {
-                path = "/v1"
-                pathType = "Prefix"
-                backend = {
-                  service = {
-                    name = "llm-service"
-                    port = {
-                      number = 8000
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        }
-      ]
-    }
-  })
-
-  depends_on = [
-    kubectl_manifest.alb_ingress_class,
-    kubectl_manifest.llm_service
-  ]
-}
-
 # GPU LLM Deployment
 resource "kubectl_manifest" "llm_gpu_deployment" {
-  count = var.is_neuron ? 0 : 1
+  count    = var.is_neuron ? 0 : 1
   provider = kubectl.llm
 
   yaml_body = yamlencode({
@@ -187,25 +107,41 @@ resource "kubectl_manifest" "llm_gpu_deployment" {
               command = [
                 "sh",
                 "-c",
-                "vllm serve ${var.llm_model} --max_model 2048"
+                "vllm serve ${var.llm_model} --max_model 100000"
               ]
               ports = [
                 {
                   containerPort = 8000
-                  protocol     = "TCP"
+                  protocol      = "TCP"
                 }
               ]
               resources = {
                 limits = {
-                  cpu               = "32"
-                  memory            = "100Gi"
+                  cpu              = "32"
+                  memory           = "100Gi"
                   "nvidia.com/gpu" = "1"
                 }
                 requests = {
-                  cpu               = "16"
-                  memory            = "30Gi"
+                  cpu              = "16"
+                  memory           = "30Gi"
                   "nvidia.com/gpu" = "1"
                 }
+              }
+              livenessProbe = {
+                httpGet = {
+                  path = "/health"
+                  port = 8000
+                }
+                initialDelaySeconds = 300
+                periodSeconds       = 10
+              }
+              readinessProbe = {
+                httpGet = {
+                  path = "/health"
+                  port = 8000
+                }
+                initialDelaySeconds = 300
+                periodSeconds       = 5
               }
             }
           ]
@@ -222,7 +158,7 @@ resource "kubectl_manifest" "llm_gpu_deployment" {
 
 # Neuron LLM Deployment
 resource "kubectl_manifest" "llm_neuron_deployment" {
-  count = var.is_neuron ? 1 : 0
+  count    = var.is_neuron ? 1 : 0
   provider = kubectl.llm
 
   yaml_body = yamlencode({
@@ -286,7 +222,7 @@ resource "kubectl_manifest" "llm_neuron_deployment" {
               ports = [
                 {
                   containerPort = 8000
-                  protocol     = "TCP"
+                  protocol      = "TCP"
                 }
               ]
               resources = {
@@ -307,7 +243,7 @@ resource "kubectl_manifest" "llm_neuron_deployment" {
                   port = 8000
                 }
                 initialDelaySeconds = 1800
-                periodSeconds      = 10
+                periodSeconds       = 10
               }
               readinessProbe = {
                 httpGet = {
@@ -315,7 +251,7 @@ resource "kubectl_manifest" "llm_neuron_deployment" {
                   port = 8000
                 }
                 initialDelaySeconds = 1800
-                periodSeconds      = 5
+                periodSeconds       = 5
               }
             }
           ]
@@ -328,4 +264,4 @@ resource "kubectl_manifest" "llm_neuron_deployment" {
     kubectl_manifest.llm_namespace,
     kubectl_manifest.llm_neuron_nodepool[0]
   ]
-} 
+}
