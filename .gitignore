@@ -6,3 +6,12 @@ node_modules
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+*.tfvars
+
+*.terraform.lock.hcl
+*.lock.info
+*.tfstate
+*.tfstate.backup
+.terraform
+
+*.log

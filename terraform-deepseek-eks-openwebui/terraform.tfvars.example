@@ -1,0 +1,41 @@
+# terraform.tfvars.example
+# Copy this file to terraform.tfvars and modify the values as needed
+
+# LLM VPC Variables
+llm_vpc_name   = "llm-vpc"
+llm_vpc_cidr   = "10.0.0.0/16"
+llm_vpc_region = "us-west-2"
+llm_vpc_azs    = ["us-west-2a", "us-west-2b", "us-west-2c"]
+
+# LLM EKS Variables
+llm_cluster_version = "1.31"
+llm_cluster_name    = "llm-eks-cluster"
+is_neuron           = false  # Set to true to use AWS Inferentia instances, false for GPU instances
+llm_model           = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"  # LLM model to deploy
+
+# Frontend VPC Variables
+frontend_vpc_name   = "frontend-vpc"
+frontend_vpc_cidr   = "172.16.0.0/16"
+frontend_vpc_region = "ap-east-1"
+frontend_vpc_azs    = ["ap-east-1a", "ap-east-1b", "ap-east-1c"]
+
+# Frontend EKS Variables
+frontend_cluster_version = "1.31"
+frontend_cluster_name    = "frontend-eks-cluster"
+
+# LLM ALB DNS Name - Set this to your domain name or leave empty to use the AWS-generated ALB DNS name
+# This is used by OpenWebUI to connect to the LLM API
+llm_alb_dns_name         = "your-llm-domain.example.com"  # Replace with your domain or leave empty
+
+# EKS Admin Access - Enable this to grant additional IAM principals admin access to EKS clusters
+enable_additional_admin = false  # Set to true to enable additional admin access
+admin_principal_arn     = "arn:aws:iam::123456789012:role/YourRoleName"  # Replace with your IAM role/user ARN
+
+# Common Tags - These tags will be applied to all resources
+tags = {
+  Environment = "production"
+  Project     = "deepseek-eks-openwebui"
+  Terraform   = "true"
+  ManagedBy   = "terraform"
+  Owner       = "your-team"  # Add your team/owner information
+}
