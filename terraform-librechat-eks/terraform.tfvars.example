@@ -1,0 +1,12 @@
+# terraform.tfvars.example
+# Copy this file to terraform.tfvars and modify the values as needed
+
+aws_region = "us-west-2"
+ecr_repository_name = "librechat"
+
+tags = {
+  Environment = "development"
+  Project     = "librechat-eks"
+  Terraform   = "true"
+  Owner       = "your-team"
+}
