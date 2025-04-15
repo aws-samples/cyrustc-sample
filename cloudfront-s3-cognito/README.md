@@ -2,6 +2,8 @@
 
 This project demonstrates how to create a secure static website hosted on AWS S3, protected by CloudFront and Cognito authentication. It uses AWS CDK for infrastructure and React + Vite for the frontend.
 
+> **Note:** This solution is a pivot of the existing [`aws-samples/cloudfront-authorization-at-edge`](https://github.com/aws-samples/cloudfront-authorization-at-edge) repository. While the original solution leverages AWS Lambda@Edge for each page request (which introduces higher latency and lambda quota consumption), this solution instead uses CloudFront Functions for validation (add no more than 10ms). The token exchange process still uses AWS Lambda@Edge due to CloudFront Function execution duration limitations.
+
 ## Architecture Overview
 
 The solution implements the following architecture:
@@ -11,6 +13,30 @@ The solution implements the following architecture:
 - **Authentication**: Amazon Cognito User Pool with OAuth 2.0 flows
 - **Security**: CloudFront Functions and Lambda@Edge for auth handling
 
+```
+┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+│               │     │               │     │               │
+│     User      │────▶│   CloudFront  │────▶│  S3 Bucket    │
+│    Browser    │     │ Distribution  │     │  (Frontend)   │
+│               │◀────│               │◀────│               │
+└───────┬───────┘     └───────┬───────┘     └───────────────┘
+        │                     │
+        │                     │ Auth Check
+        │                     ▼
+        │             ┌───────────────┐     ┌───────────────┐
+        │             │  CloudFront   │     │  Lambda@Edge  │
+        └────────────▶│   Function    │────▶│  (Token       │
+          Auth        │               │     │   Exchange)   │
+          Redirect    └───────┬───────┘     └───────┬───────┘
+                              │                     │
+                              ▼                     │
+                      ┌───────────────┐             │
+                      │   Cognito     │◀────────────┘
+                      │  User Pool    │
+                      │               │
+                      └───────────────┘
+```
+
 ### Authentication Flow
 
 1. User visits the CloudFront URL
@@ -19,6 +45,36 @@ The solution implements the following architecture:
 4. After successful login, Cognito redirects to `/cf-auth`
 5. Lambda@Edge function exchanges the auth code for tokens
 6. User is redirected to the main application with secure cookies
+
+```
+┌─────────┐           ┌────────────┐          ┌─────────┐          ┌─────────┐
+│         │  1. Visit │            │          │         │          │         │
+│  User   │──────────▶│ CloudFront │─────────▶│   S3    │          │ Cognito │
+│ Browser │           │            │  If Auth │ Content │          │User Pool│
+│         │◀───────── │            │◀─────────│         │          │         │
+└────┬────┘  6. View  └──────┬─────┘          └─────────┘          └────┬────┘
+     │       Content         │                                          │
+     │                       │ 2. Check Auth                            │
+     │                       ▼                                          │
+     │               ┌───────────────┐                                  │
+     │               │  CloudFront   │                                  │
+     │               │   Function    │                                  │
+     │               └───────┬───────┘                                  │
+     │                       │ 3. Redirect if                           │
+     │                       │    not auth                              │
+     │                       ▼                                          │
+     │              ┌────────────────┐                                  │
+     │ 4. Login     │    Cognito     │                                  │
+     └─────────────▶│   Hosted UI    │◀─────────────────────────────────┘
+                    └────────┬───────┘
+                             │
+                             │ 5. Redirect with code
+                             ▼
+                    ┌───────────────┐
+                    │  Lambda@Edge  │
+                    │ (Token Exch.) │
+                    └───────────────┘
+```
 
 ## Prerequisites
 
@@ -61,6 +117,7 @@ cdk deploy --all --require-approval never
 ```
 
 After deployment, the CDK will output:
+
 - CloudFront Distribution URL
 - Cognito User Pool ID
 - Cognito Client ID
