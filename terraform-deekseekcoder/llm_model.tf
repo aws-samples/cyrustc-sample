@@ -110,7 +110,25 @@ resource "kubectl_manifest" "llm_gpu_deployment" {
               command = [
                 "sh",
                 "-c",
-                "vllm serve ${var.llm_model_name} --device cuda --trust-remote-code --dtype=half --max-model-len=8192 --gpu-memory-utilization=0.9"
+                "vllm serve TheBloke/deepseek-coder-6.7b-instruct-GPTQ --device cuda --tensor-parallel-size 2 --trust-remote-code --dtype=half --max-model-len=8192 --gpu-memory-utilization=0.9"
+              ]
+              env = [
+                {
+                  name  = "NCCL_DEBUG"
+                  value = "INFO"
+                },
+                {
+                  name  = "NCCL_IB_DISABLE"
+                  value = "1"
+                },
+                {
+                  name  = "NCCL_SOCKET_IFNAME"
+                  value = "eth0"
+                },
+                {
+                  name  = "NCCL_P2P_DISABLE"
+                  value = "1"
+                }
               ]
               ports = [
                 {

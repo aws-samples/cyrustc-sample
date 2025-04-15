@@ -15,3 +15,7 @@ cdk.out
 .terraform
 
 *.log
+venv
+__pycache__
+*.csv
+.env
