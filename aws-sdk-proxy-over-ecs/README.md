@@ -148,7 +148,7 @@ const client = new BedrockRuntimeClient({
 
 // Use the client to make API calls
 const command = new ConverseStreamCommand({
-  modelId: "anthropic.claude-3-sonnet-20240229-v1:0",
+  modelId: "amazon.nova-pro-v1:0",
   messages: [{ role: "user", content: [{ text: "tell me a joke" }] }],
   inferenceConfig: { maxTokens: 512, temperature: 0.7, topP: 0.9 },
 });
