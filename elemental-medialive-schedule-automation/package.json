@@ -9,7 +9,7 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "deploy": "cdk deploy --all --require-approval never",
+    "deploy": "npx cdk deploy --all --require-approval never",
     "format": "prettier --write \"lib/**/*.ts\" \"bin/**/*.ts\" \"lambda/**/*.ts\""
   },
   "devDependencies": {
