@@ -58,7 +58,7 @@ export class MediaRecordWorkflow extends Construct {
 
     // Create the state machine with Pass state as the first step
     this.stateMachine = new sfn.StateMachine(this, 'StateMachine', {
-      definition: selectFirstRecord.next(choice),
+      definitionBody: sfn.DefinitionBody.fromChainable(selectFirstRecord.next(choice)),
       timeout: cdk.Duration.minutes(5),
       tracingEnabled: true,
       logs: {

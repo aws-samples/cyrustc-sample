@@ -195,7 +195,7 @@ export class MediaWorkflow extends Construct {
 
     // Create the state machine
     this.stateMachine = new sfn.StateMachine(this, 'StateMachine', {
-      definition,
+      definitionBody: sfn.DefinitionBody.fromChainable(definition),
       timeout: cdk.Duration.hours(24),
     });
 
