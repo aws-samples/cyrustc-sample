@@ -1,0 +1,73 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# DynamoDB Design Patterns
+
+## Table Structure
+
+The project follows a single-table design pattern for DynamoDB.
+
+### Key Structure
+
+- Partition key (pk) and sort key (sk) naming convention
+- Use of prefixes to distinguish entity types (e.g., `USER#123`, `ORDER#456`)
+- Example table: [infrastructure/lib/dynamodb/hello-world-table.construct.ts](mdc:infrastructure/lib/dynamodb/hello-world-table.construct.ts)
+
+### Best Practices
+
+1. Use meaningful prefixes for primary keys to distinguish entity types
+2. Store related entities in the same table with different key patterns
+3. Use GSIs (Global Secondary Indexes) for additional access patterns
+4. Store all date/time values in ISO 8601 format and UTC timezone
+
+## Python Data Models
+
+Lambda functions should use a data modeling library like PynamoDB or boto3.enhanced to interact with DynamoDB:
+
+```python
+class HelloWorld(Model):
+    class Meta:
+        table_name = os.environ['HELLO_WORLD_TABLE_NAME']
+        region = os.environ['AWS_REGION']
+        
+    pk = UnicodeAttribute(hash_key=True)
+    value = UnicodeAttribute(null=True)
+    
+    @staticmethod
+    def pk_format(id):
+        return f"HELLO#{id}"
+```
+
+## Table Creation
+
+Tables are defined as CDK constructs following this pattern:
+
+```typescript
+this.table = new dynamodb.Table(this, "TableName", {
+  partitionKey: {
+    name: "pk",
+    type: dynamodb.AttributeType.STRING,
+  },
+  sortKey: {  // Optional
+    name: "sk",
+    type: dynamodb.AttributeType.STRING,
+  },
+  billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+  removalPolicy: isDevEnvironment ? 
+    cdk.RemovalPolicy.DESTROY : 
+    cdk.RemovalPolicy.RETAIN,
+  pointInTimeRecovery: true,
+});
+```
+
+## Environment-Specific Settings
+
+- Dev/Local environments: `RemovalPolicy.DESTROY` for easy cleanup
+- Staging/Production environments: `RemovalPolicy.RETAIN` to prevent data loss
+
+## Access Patterns
+- Document all access patterns
+- Design keys and indexes to support efficient querying
+- Consider and document composite key patterns

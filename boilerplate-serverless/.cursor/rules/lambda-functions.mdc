@@ -1,0 +1,79 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Lambda Function Development
+
+## Python Lambda Functions
+
+The project uses Python for Lambda functions with AWS Lambda Powertools.
+
+### File Structure
+
+Lambda functions follow this structure:
+
+```
+infrastructure/lib/api/feature-name/lambda-name/
+├── lambda-name.py
+└── requirements.txt
+```
+
+Example: [infrastructure/lib/api/hello/hello-world/hello-world.py](mdc:infrastructure/lib/api/hello/hello-world/hello-world.py)
+
+### AWS Lambda Powertools
+
+Lambda functions use AWS Lambda Powertools for:
+
+- Logging: Structured JSON logs with correlation IDs
+- Tracing: AWS X-Ray integration for performance monitoring
+- Event handling: API Gateway event parsing and response formatting
+- Validation: Request/response validation
+
+### Standard Pattern
+
+API Lambda functions follow this pattern:
+
+```python
+from aws_lambda_powertools import Logger, Tracer
+from aws_lambda_powertools.event_handler import APIGatewayRestResolver
+from aws_lambda_powertools.utilities.typing import LambdaContext
+
+logger = Logger()
+tracer = Tracer()
+app = APIGatewayRestResolver()
+
+@app.get("/path/resource")
+@tracer.capture_method
+def get_resource():
+    # Implementation
+    return {"statusCode": 200, "body": "Response"}
+
+@logger.inject_lambda_context
+@tracer.capture_lambda_handler
+def handler(event: dict, context: LambdaContext) -> dict:
+    return app.resolve(event, context)
+```
+
+### Lambda Deployment
+
+Lambda functions are deployed through CDK using the `LambdaPythonFunction` construct:
+
+```typescript
+const lambdaFunction = new LambdaPythonFunction(this, 'FunctionName', {
+  entry: path.join(__dirname, 'lambda-directory'),
+  layer: commonLayer,
+  environment: {
+    TABLE_NAME: table.tableName,
+  },
+});
+```
+
+### Best Practices
+
+1. Use AWS Lambda Powertools for logging, tracing, and event handling
+2. Implement proper error handling with clear error messages
+3. Use environment variables for configuration
+4. Keep Lambda functions focused on a single responsibility
+5. Use layers for common dependencies
+6. Include proper type hints and docstrings

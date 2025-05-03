@@ -1,0 +1,73 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# AWS CDK Guidelines
+
+## Project Structure
+
+The infrastructure code is organized using the AWS Cloud Development Kit (CDK) with TypeScript:
+
+- `infrastructure/bin/infrastructure.ts`: Main entry point
+- `infrastructure/lib/`: Contains all stacks and constructs
+- `infrastructure/lib/stacks/`: Nested stacks for modularity
+- `infrastructure/lib/*/`: Domain-specific constructs (security, frontend, api, etc.)
+
+## Key Principles
+
+1. Use nested stacks for modularity and to avoid CloudFormation limits
+2. Create reusable constructs for common patterns
+3. Follow consistent naming conventions across resources
+4. Apply proper environment-specific settings
+5. Enable monitoring, logging and tracing
+
+## Constructs Organization
+
+Constructs are grouped by domain/purpose:
+
+- `infrastructure/lib/api/`: API Gateway and Lambda functions
+- `infrastructure/lib/security/`: Cognito and other security resources
+- `infrastructure/lib/frontend/`: Frontend hosting infrastructure
+- `infrastructure/lib/dynamodb/`: Database tables and access patterns
+
+## Best Practices
+
+- Use environment-aware configurations via CDK context
+- Apply least-privilege permissions using IAM
+- Enable logging and monitoring for all resources
+- Configure appropriate retention policies based on environment
+- Document cross-stack references and dependencies
+
+## Resource Naming
+
+- Use consistent naming patterns including environment info
+- Follow the pattern: `${id}-${resourceType}-${environment}`
+- Use descriptive names that indicate resource purpose
+- Avoid hardcoded names where possible
+
+## Environment Configuration
+
+The project uses CDK context for environment-specific settings:
+
+```typescript
+// Get environment value
+const environment = stack.node.tryGetContext('environment');
+const isDevEnvironment = environment === 'local' || environment === 'dev';
+
+// Apply environment-specific settings
+this.table = new dynamodb.Table(this, "TableName", {
+  removalPolicy: isDevEnvironment ? 
+    cdk.RemovalPolicy.DESTROY : 
+    cdk.RemovalPolicy.RETAIN,
+  // Other settings...
+});
+```
+
+## Deployment Commands
+
+- `npx cdk bootstrap`: Prepare AWS environment (first time only)
+- `npx cdk deploy`: Deploy all stacks
+- `npx cdk deploy StackName`: Deploy specific stack
+- `npx cdk diff`: Show changes before deployment
+- `npx cdk synth`: Generate CloudFormation template

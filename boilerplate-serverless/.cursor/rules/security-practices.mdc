@@ -1,0 +1,45 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Security Best Practices
+
+## Infrastructure Security
+
+### API Gateway Security
+- API Key required for all endpoints
+- Request validation enabled by default
+- X-Ray tracing for request monitoring
+- CloudWatch logging with appropriate retention
+
+### WAF (Web Application Firewall)
+- Rate limiting to prevent DDoS attacks
+- AWS Managed Rules enabled:
+  - Common Rule Set (CRS)
+    - SQL injection prevention
+    - Cross-site scripting (XSS) prevention
+  - Known Bad Inputs protection
+
+### Authentication with Cognito
+- Secure user pool configuration
+- Self-registration settings configured appropriately
+- Strong password requirements
+- Account recovery via secure channels
+- Integration with identity providers as needed
+
+### Environment-Specific Settings
+- Production:
+  - Resources have retention policies enabled
+  - Deletion protection enabled
+  - Enhanced security configurations
+- Non-production:
+  - Simplified security for development
+  - Resources can be destroyed
+
+## Data Security
+- Store sensitive data encrypted at rest
+- Use HTTPS for all communications
+- Implement least privilege access
+- Use IAM roles for service-to-service communication
+- Rotate credentials and keys regularly

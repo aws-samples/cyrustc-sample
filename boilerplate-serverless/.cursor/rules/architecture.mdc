@@ -1,0 +1,70 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Application Architecture
+
+This project follows a serverless architecture using AWS services and a React frontend.
+
+## Authentication Flow
+
+1. Users access the application through CloudFront
+2. CloudFront Lambda@Edge functions handle authentication
+3. Authentication is managed by Amazon Cognito
+4. After successful authentication, users can access the React application
+
+## Infrastructure Components
+
+- **Amazon Cognito**: User authentication and management
+- **Amazon CloudFront**: Content delivery and edge functions 
+- **Amazon S3**: Frontend asset hosting
+- **Lambda@Edge**: Authentication enforcement at the edge
+
+## Deployment Model
+
+The project uses AWS CDK for infrastructure as code:
+
+1. [infrastructure/lib/infrastructure-stack.ts](mdc:infrastructure/lib/infrastructure-stack.ts) is the main stack
+2. Nested stacks handle specific infrastructure components
+3. The frontend is built and deployed to S3/CloudFront
+
+## Security Model
+
+- Authentication is handled by Amazon Cognito
+- CloudFront authentication functions verify access tokens
+- Callback URLs are automatically updated to match the CloudFront domain
+
+## API Design Guidelines
+
+### RESTful API Best Practices
+
+1. Use plural nouns for resource collections (e.g., `/products`)
+2. Use singular nouns for singleton resources (e.g., `/product/{id}`)
+3. Use hyphens to separate words in URLs (e.g., `/product-categories`)
+4. Use lowercase for URL paths
+5. Use forward slashes to indicate hierarchical relationships (e.g., `/customers/{id}/orders`)
+6. Never use CRUD function names or verbs in URIs (avoid `/createProduct`, `/updateProduct`, etc.)
+
+### API Response Structure
+
+For collection endpoints:
+```
+{
+  "meta": {
+    "fetchedAt": "ISO-8601 timestamp",
+    "nextToken": "pagination token or null"
+  },
+  "items": [{}, {}, {}]
+}
+```
+
+For single item endpoints:
+```
+{
+  "meta": {
+    "fetchedAt": "ISO-8601 timestamp"
+  },
+  "item": {}
+}
+```

@@ -1,0 +1,52 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# AWS Step Functions Development
+
+## Step Functions Design
+
+Step Functions are used for workflow orchestration and coordination of distributed services.
+
+### Project Structure
+- Each Step Function should be in its own directory
+- Define the state machine in a separate file
+- Lambda functions used by the state machine should be in the same directory:
+  ```
+  workflow-name/
+  ├── _state-machine.construct.ts
+  ├── lambda-1/
+  │   ├── lambda-1.py
+  │   └── requirements.txt
+  └── lambda-2/
+      ├── lambda-2.py
+      └── requirements.txt
+  ```
+
+### Configuration
+- Enable X-Ray tracing
+- Default timeout: 30 minutes
+- Implement retry policies for all states
+- Configure dead letter queues (DLQ) for error handling
+- Enable CloudWatch logging
+- Set appropriate tracing configuration
+
+### Best Practices
+- Create dedicated Lambda functions for each step in the workflow
+- Use meaningful state names
+- Add proper error handling for each state
+- Document the step function's purpose and flow in comments
+- Avoid native service integrations when possible
+- Document the workflow logic and requirements
+
+### Error Handling
+- Implement Retry for transient errors
+- Implement Catch for handling specific errors
+- Configure timeout handling
+- Handle failure states appropriately
+
+### Event Integration
+- When triggered by DynamoDB streams, use EventBridge Pipes
+- First task should be triggered with a payload from the DynamoDB stream record
+- Use EventBridge for event-driven workflows
