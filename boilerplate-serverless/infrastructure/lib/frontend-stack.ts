@@ -8,7 +8,8 @@ export interface MainFrontendStackProps extends cdk.StackProps {
   clientId: string;
   clientSecret: string;
   cognitoDomain: string;
-  cognitoRegion?: string; // Add optional region
+  cognitoRegion?: string; 
+  apiEndpoint: string;
 }
 
 export class MainFrontendStack extends cdk.Stack {
@@ -25,6 +26,7 @@ export class MainFrontendStack extends cdk.Stack {
       clientSecret: props.clientSecret,
       cognitoDomain: props.cognitoDomain,
       cognitoRegion: cognitoRegion,
+      apiEndpoint: props.apiEndpoint,
     });
 
     // Update Cognito callback URLs after CloudFront is created

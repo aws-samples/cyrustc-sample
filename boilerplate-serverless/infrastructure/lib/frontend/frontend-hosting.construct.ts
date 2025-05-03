@@ -8,6 +8,7 @@ import * as path from "path";
 import { Construct } from "constructs";
 import { cfAuthFunction } from "./cf-auth.function";
 import { checkAuthFunction } from "./cf-check-auth.function";
+import { cfConfigFunction } from "./cf-config.function";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 
 export interface FrontendHostingConstructProps {
@@ -16,6 +17,7 @@ export interface FrontendHostingConstructProps {
   clientSecret: string;
   cognitoDomain: string;
   cognitoRegion?: string;
+  apiEndpoint: string;
 }
 
 export class FrontendHostingConstruct extends Construct {
@@ -103,6 +105,24 @@ export class FrontendHostingConstruct extends Construct {
       }
     );
 
+    // Create Config Function
+    const configCloudFrontFunction = new cloudfront.Function(
+      this,
+      "ConfigFunction",
+      {
+        code: cloudfront.FunctionCode.fromInline(
+          cfConfigFunction(
+            props.apiEndpoint,
+            props.userPoolId,
+            props.clientId,
+            props.cognitoDomain,
+            cognitoRegion
+          )
+        ),
+        runtime: cloudfront.FunctionRuntime.JS_2_0,
+      }
+    );
+
     // Create CloudFront distribution
     this.distribution = new cloudfront.Distribution(
       this,
@@ -136,6 +156,20 @@ export class FrontendHostingConstruct extends Construct {
             ],
             viewerProtocolPolicy:
               cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          },
+          "/config": {
+            origin: new origins.S3Origin(this.bucket, {
+              originAccessIdentity: this.originAccessIdentity,
+            }),
+            viewerProtocolPolicy:
+              cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+            functionAssociations: [
+              {
+                function: configCloudFrontFunction,
+                eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+              },
+            ],
+            cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
           },
         },
         defaultRootObject: "index.html",

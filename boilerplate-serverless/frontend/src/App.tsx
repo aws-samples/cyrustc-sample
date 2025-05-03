@@ -1,34 +1,55 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter } from 'react-router-dom'
+import { Suspense } from 'react'
+import { TopNavigation } from '@cloudscape-design/components'
+import '@cloudscape-design/global-styles/index.css'
+import { AppRouter } from '@/app/router'
+
+function TopNav() {
+  return (
+    <TopNavigation
+      identity={{
+        href: '/',
+        title: 'Sample Application',
+      }}
+      utilities={[
+        {
+          type: 'button',
+          text: 'Documentation',
+          href: '/docs',
+          external: true,
+          externalIconAriaLabel: ' (opens in a new tab)',
+        },
+        {
+          type: 'menu-dropdown',
+          text: 'User',
+          iconName: 'user-profile',
+          items: [
+            { id: 'profile', text: 'Profile' },
+            { id: 'preferences', text: 'Preferences' },
+            { id: 'settings', text: 'Settings' },
+          ],
+        },
+      ]}
+      i18nStrings={{
+        searchIconAriaLabel: 'Search',
+        searchDismissIconAriaLabel: 'Close search',
+        overflowMenuTriggerText: 'More',
+        overflowMenuTitleText: 'All',
+        overflowMenuBackIconAriaLabel: 'Back',
+        overflowMenuDismissIconAriaLabel: 'Close menu',
+      }}
+    />
+  )
+}
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <BrowserRouter>
+      <TopNav />
+      <Suspense fallback={null}>
+        <AppRouter />
+      </Suspense>
+    </BrowserRouter>
   )
 }
 

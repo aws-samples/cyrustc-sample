@@ -29,6 +29,7 @@ const frontendStack = new MainFrontendStack(app, "FrontendStack", {
   clientSecret: backendStack.clientSecret,
   cognitoDomain: backendStack.cognitoDomain,
   cognitoRegion: backendRegion,
+  apiEndpoint: backendStack.apiEndpoint,
   description: "Frontend infrastructure stack containing CloudFront distribution",
   crossRegionReferences: true, // Enable cross-region references
 });

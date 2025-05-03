@@ -8,6 +8,7 @@ export interface FrontendStackProps extends cdk.NestedStackProps {
   clientSecret: string;
   cognitoDomain: string;
   cognitoRegion?: string;
+  apiEndpoint: string;
 }
 
 export class FrontendStack extends cdk.NestedStack {
@@ -26,6 +27,7 @@ export class FrontendStack extends cdk.NestedStack {
         clientSecret: props.clientSecret,
         cognitoDomain: props.cognitoDomain,
         cognitoRegion: props.cognitoRegion,
+        apiEndpoint: props.apiEndpoint,
       }
     );
 
