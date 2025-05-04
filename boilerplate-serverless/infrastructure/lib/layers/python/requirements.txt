@@ -9,7 +9,7 @@ fastjsonschema>=2.20.0
 pydantic>=2.9.2
 PyPDF2>=3.0.0 
 PyMuPDF==1.23.8
-Pillow==10.2.0
+Pillow==10.3.0
 pynamodb>=6.0.0
 requests>=2.31.0
 opensearch-py==2.8.0
