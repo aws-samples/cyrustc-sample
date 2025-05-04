@@ -6,15 +6,20 @@ import * as cognito from "aws-cdk-lib/aws-cognito";
 import { Construct } from "constructs";
 import { ApiGatewayConfig, EnvironmentConfig } from "../config/environment";
 
-
+export interface RestApiGatewayProps extends EnvironmentConfig {
+  userPool?: cognito.IUserPool;
+}
 
 export class RestApiGateway extends Construct {
   public readonly api: apigateway.RestApi;
   public readonly v1: apigateway.Resource;
   public readonly userPool?: cognito.IUserPool;
+  public readonly cognitoAuthorizer?: apigateway.CognitoUserPoolsAuthorizer;
 
-  constructor(scope: Construct, id: string, props: EnvironmentConfig) {
+  constructor(scope: Construct, id: string, props: RestApiGatewayProps) {
     super(scope, id);
+
+    this.userPool = props.userPool;
 
     // Create CloudWatch Logs Role for API Gateway
     const apiGatewayLogsRole = new iam.Role(this, "ApiGatewayLogsRole", {
@@ -89,6 +94,20 @@ export class RestApiGateway extends Construct {
     // Add API Key only if required
     if (props.apiGateway.requireApiKey) {
       this.api.addApiKey("DefaultApiKey");
+    }
+
+    // Create Cognito authorizer if user pool is provided
+    if (this.userPool) {
+      this.cognitoAuthorizer = new apigateway.CognitoUserPoolsAuthorizer(
+        this,
+        "CognitoAuthorizer",
+        {
+          cognitoUserPools: [this.userPool],
+          authorizerName: "CognitoUserPoolAuthorizer",
+          identitySource: "method.request.header.Authorization",
+        }
+      );
+      this.cognitoAuthorizer._attachToApi(this.api);
     }
 
     // Ensure the API Gateway account settings are created before the API

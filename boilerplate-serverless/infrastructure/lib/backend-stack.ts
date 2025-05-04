@@ -42,6 +42,7 @@ export class MainBackendStack extends cdk.Stack {
         "API nested stack containing API Gateway and Lambda functions",
       environment: environment,
       dynamodbStack: this.dynamodbStack,
+      userPool: securityStack.cognitoConstruct.userPool,
     });
 
     // Create the Step Functions stack
