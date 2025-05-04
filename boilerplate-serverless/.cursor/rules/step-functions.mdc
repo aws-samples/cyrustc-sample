@@ -1,0 +1,100 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# AWS Step Functions Development
+
+## Step Functions Design
+
+Step Functions are used for workflow orchestration and coordination of distributed services.
+
+### Project Structure
+- Each Step Function should be in its own directory
+- Define the state machine in a separate file
+- Lambda functions used by the state machine should be in the same directory:
+  ```
+  workflow-name/
+  ├── _state-machine.construct.ts
+  ├── lambda-1/
+  │   ├── lambda-1.py
+  │   └── requirements.txt
+  └── lambda-2/
+      ├── lambda-2.py
+      └── requirements.txt
+  ```
+
+### Configuration
+- Enable X-Ray tracing
+- Default timeout: 30 minutes
+- Implement retry policies for all states
+- Configure dead letter queues (DLQ) for error handling
+- Enable CloudWatch logging
+- Set appropriate tracing configuration
+
+### Best Practices
+- Create dedicated Lambda functions for each step in the workflow
+- Use meaningful state names
+- Add proper error handling for each state
+- Document the step function's purpose and flow in comments
+- Avoid native service integrations when possible
+- Document the workflow logic and requirements
+
+### Error Handling
+- Implement Retry for transient errors
+- Implement Catch for handling specific errors
+- Configure timeout handling
+- Handle failure states appropriately
+
+### Event Integration
+- When triggered by DynamoDB streams, use EventBridge Pipes
+- First task should be triggered with a payload from the DynamoDB stream record
+- Use EventBridge for event-driven workflows
+
+# AWS Step Functions Guidelines
+
+This project uses AWS Step Functions for orchestrating workflows with a standardized structure.
+
+## Base Architecture
+
+Step Functions use a common base class:
+[infrastructure/core/step-function/base/base-step-function.ts](mdc:infrastructure/core/step-function/base/base-step-function.ts)
+
+The base class handles:
+- Initializing common properties like `dynamodbStack` and `layer`
+- Setting up CloudWatch logging
+- Managing the workflow lifecycle
+- Applying standard tags
+
+## Creating New Step Functions
+
+1. Extend the `BaseStepFunction` class
+2. Implement the required abstract methods:
+   - `createDependencies()`: Set up Lambda functions and other resources
+   - `createWorkflowDefinition()`: Define the state machine logic
+   - `setupResources()`: Configure event sources
+
+## Example Implementation
+
+The HelloWorld Step Function shows the pattern:
+[infrastructure/lib/step-functions/hello-world/_hello-world-sfn.construct.ts](mdc:infrastructure/lib/step-functions/hello-world/_hello-world-sfn.construct.ts)
+
+## DynamoDB Integration
+
+Step Functions that process DynamoDB streams should:
+1. Implement the `IDynamoDbEventSource` interface
+2. Use the `setupDynamoDbEventSource()` method to create EventBridge Pipes
+3. Access tables via `this.dynamodbStack.tableName.table`
+
+## Lambda Function Pattern
+
+Lambda functions for step functions should:
+1. Use the common layer provided via `this.layer`
+2. Be created with the `LambdaPythonFunction` construct
+3. Include proper error handling and validation
+
+## Important Notes
+
+- All Step Functions have access to `this.dynamodbStack` and `this.layer` from the base class
+- The constructor must call `super(scope, id, props)` to initialize these properties
+- Lifecycle methods are called in this order: constructor → createDependencies → createWorkflowDefinition → setupResources

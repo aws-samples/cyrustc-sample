@@ -15,4 +15,3 @@ cdk.out
 
 *.log
 venv/
-.cursor

@@ -1,0 +1,85 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# React Component Best Practices
+
+## Component Structure
+
+React components should follow these patterns:
+
+### Functional Components
+
+```tsx
+// Use named exports
+export function ComponentName({ prop1, prop2 }: ComponentNameProps) {
+  // Component logic
+  return (
+    <div>
+      {/* JSX markup */}
+    </div>
+  );
+}
+```
+
+### Component Props
+
+Always define TypeScript interfaces for component props:
+
+```tsx
+interface ComponentNameProps {
+  required: string;
+  optional?: number;
+  callback: (value: string) => void;
+}
+```
+
+## File Organization
+
+- Related components should be grouped in the same directory
+- Components should be split into smaller pieces when they exceed ~150 lines
+- Keep component files focused on a single responsibility
+
+## Component Patterns
+
+### Custom Hooks
+
+Extract complex logic into custom hooks:
+
+```tsx
+function useCustomHook(param: string) {
+  // Hook logic
+  return { data, loading, error };
+}
+```
+
+### Conditional Rendering
+
+Prefer ternary operators for simple conditions:
+
+```tsx
+{isLoading ? <LoadingSpinner /> : <Content />}
+```
+
+Use logical AND for conditional display:
+
+```tsx
+{hasError && <ErrorMessage error={error} />}
+```
+
+### Lists and Keys
+
+Always use unique keys for list items:
+
+```tsx
+{items.map(item => (
+  <ListItem key={item.id} item={item} />
+))}
+```
+
+## State Management
+
+- Use React hooks for local component state
+- Use context for sharing state between related components
+- Avoid prop drilling more than 2 levels deep

@@ -1,0 +1,52 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Project Structure
+
+This project follows a monorepo structure with two main components:
+
+## Main Directories
+
+- `frontend/`: React application using TypeScript and Vite
+- `infrastructure/`: AWS CDK code for infrastructure as code
+
+## Backend (Infrastructure)
+
+The backend is built using AWS CDK with TypeScript.
+
+### Key Files and Directories
+- `infrastructure/bin/infrastructure.ts`: Main entry point for CDK application
+- `infrastructure/lib/infrastructure-stack.ts`: Main stack definition
+- `infrastructure/lib/stacks/`: Nested stacks organized by purpose
+- `infrastructure/lib/security/`: Security-related constructs
+- `infrastructure/lib/frontend/`: Frontend hosting constructs
+
+### Organization Pattern
+- Each AWS resource should be defined as a reusable construct
+- Follow consistent naming conventions for all resources
+- Group related resources in appropriate directories
+
+## Frontend
+
+The frontend is a React application using TypeScript and Vite.
+
+### Key Files and Directories
+- `frontend/src/main.tsx`: Application entry point
+- `frontend/src/App.tsx`: Main application component
+- `frontend/src/components/`: Reusable UI components
+- `frontend/src/hooks/`: Custom React hooks
+- `frontend/src/services/`: API and service implementations
+- `frontend/src/utils/`: Utility functions
+
+### Organization Pattern
+- Organize components by feature or domain
+- Keep related files close together
+- Follow consistent naming and file structure
+
+## Documentation
+- Include README files with setup instructions
+- Document architecture decisions
+- Maintain API documentation
+- Document access patterns for data stores

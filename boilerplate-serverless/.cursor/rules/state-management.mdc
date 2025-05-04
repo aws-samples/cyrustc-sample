@@ -1,0 +1,150 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# State Management Guidelines
+
+## React State Management
+
+### Local State
+
+Use React's built-in state hooks for component-level state:
+
+```tsx
+function Counter() {
+  const [count, setCount] = useState(0);
+  
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  );
+}
+```
+
+### Complex State
+
+Use `useReducer` for complex state management:
+
+```tsx
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return { count: state.count + 1 };
+    case 'decrement':
+      return { count: state.count - 1 };
+    default:
+      throw new Error();
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, { count: 0 });
+  
+  return (
+    <div>
+      <p>Count: {state.count}</p>
+      <button onClick={() => dispatch({ type: 'increment' })}>+</button>
+      <button onClick={() => dispatch({ type: 'decrement' })}>-</button>
+    </div>
+  );
+}
+```
+
+### Context API
+
+Use Context for sharing state between components:
+
+```tsx
+// 1. Create context
+const UserContext = createContext(null);
+
+// 2. Create provider
+function UserProvider({ children }) {
+  const [user, setUser] = useState(null);
+  
+  const login = async (credentials) => {
+    // Authentication logic
+    setUser(userData);
+  };
+  
+  const logout = () => {
+    setUser(null);
+  };
+  
+  return (
+    <UserContext.Provider value={{ user, login, logout }}>
+      {children}
+    </UserContext.Provider>
+  );
+}
+
+// 3. Create custom hook
+function useUser() {
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+}
+
+// 4. Use in components
+function Profile() {
+  const { user, logout } = useUser();
+  
+  return (
+    <div>
+      <h1>Hello, {user.name}</h1>
+      <button onClick={logout}>Logout</button>
+    </div>
+  );
+}
+```
+
+## Data Fetching
+
+Use React Query for server state management:
+
+```tsx
+function TodoList() {
+  const { data, isLoading, error } = useQuery('todos', fetchTodos);
+  
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage error={error} />;
+  
+  return (
+    <ul>
+      {data.map(todo => (
+        <TodoItem key={todo.id} todo={todo} />
+      ))}
+    </ul>
+  );
+}
+```
+
+## State Organization
+
+### Feature-Based State
+
+Organize state by feature:
+
+```
+src/
+└── features/
+    ├── auth/
+    │   ├── authContext.tsx
+    │   └── useAuth.tsx
+    └── todos/
+        ├── todoContext.tsx
+        └── useTodos.tsx
+```
+
+### State Architecture Guidelines
+
+1. Keep state as close as possible to components that use it
+2. Avoid deeply nested contexts
+3. Use memoization to prevent unnecessary re-renders
+4. Split context by domain/feature to avoid re-renders
+5. Prefer composition over inheritance

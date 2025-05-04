@@ -1,0 +1,117 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# AWS Best Practices
+
+## AWS Service Configuration
+
+### IAM Permissions
+
+- Always follow the principle of least privilege
+- Use specific resource ARNs instead of wildcards when possible
+- Use condition keys to further restrict permissions
+- Review and rotate credentials regularly
+
+Example IAM policy:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:Query",
+        "dynamodb:PutItem"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:${region}:${account}:table/${tableName}"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:PrincipalTag/Role": "api-service"
+        }
+      }
+    }
+  ]
+}
+```
+
+### Lambda Functions
+
+- Set appropriate memory and timeout values
+- Enable X-Ray tracing for performance monitoring
+- Use environment variables for configuration
+- Implement proper error handling and logging
+
+### API Gateway
+
+- Enable request validation
+- Set up appropriate throttling limits
+- Configure CloudWatch logging with a reasonable retention period
+- Set up request mapping templates for request transformation
+
+### CloudFront
+
+- Configure appropriate cache behaviors
+- Set up WAF rules for security
+- Use Lambda@Edge for request/response manipulation
+- Configure proper error pages
+
+## AWS CDK Patterns
+
+### Stack Organization
+
+```typescript
+// Split large stacks into smaller ones
+export class ApiStack extends cdk.NestedStack {
+  constructor(scope: Construct, id: string, props?: cdk.NestedStackProps) {
+    super(scope, id, props);
+    
+    // API Gateway resources
+    // Lambda functions
+  }
+}
+```
+
+### Resource Naming
+
+```typescript
+// Use consistent naming patterns
+const tableName = `${props.stackName}-users-${props.environment}`;
+
+const table = new dynamodb.Table(this, 'UsersTable', {
+  tableName,
+  partitionKey: { name: 'pk', type: dynamodb.AttributeType.STRING },
+  sortKey: { name: 'sk', type: dynamodb.AttributeType.STRING },
+  billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+});
+```
+
+### Environment Configuration
+
+```typescript
+// Get environment-specific settings
+const environment = this.node.tryGetContext('environment');
+const isProduction = environment === 'prod';
+
+// Apply environment-specific settings
+new dynamodb.Table(this, 'Table', {
+  removalPolicy: isProduction ? 
+    cdk.RemovalPolicy.RETAIN : 
+    cdk.RemovalPolicy.DESTROY,
+  pointInTimeRecovery: isProduction,
+});
+```
+
+### Tags
+
+```typescript
+// Add tags to resources for better organization
+cdk.Tags.of(this).add('Environment', environment);
+cdk.Tags.of(this).add('Project', props.projectName);
+cdk.Tags.of(this).add('ManagedBy', 'CDK');
+```

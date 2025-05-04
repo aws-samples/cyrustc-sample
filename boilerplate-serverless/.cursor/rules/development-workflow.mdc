@@ -1,0 +1,63 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Development Workflow
+
+## Local Development
+
+### Frontend Development
+
+1. Navigate to the frontend directory: `cd frontend`
+2. Install dependencies: `npm install`  
+3. Start the development server: `npm run dev`
+4. Access the app in your browser at `http://localhost:5173`
+
+### Infrastructure Development
+
+1. Navigate to the infrastructure directory: `cd infrastructure`
+2. Install dependencies: `npm install`
+3. Compile TypeScript code: `npm run build` or `npm run watch` for automatic compilation
+
+## Deployment Process
+
+### Building the Frontend
+
+1. Run `npm run build` in the frontend directory
+2. Output will be generated in the `dist/` directory
+
+### Deploying to AWS
+
+1. Navigate to the infrastructure directory: `cd infrastructure`
+2. Ensure AWS credentials are configured (`aws configure`)
+3. Use `npx cdk bootstrap` to prepare your AWS account (first time only)
+4. Deploy with `npx cdk deploy`
+
+### CI/CD Integration
+
+- The infrastructure includes all the necessary components for secure deployment
+- The frontend is automatically deployed to S3 and distributed via CloudFront
+- Cognito callback URLs are automatically updated during deployment
+
+## Development Guidelines
+
+### Code Style
+
+1. Follow Google Markdown Style Guide for documentation
+2. For Python code, follow Google Python Style Guide
+3. For TypeScript code, follow Airbnb JavaScript Style Guide
+
+### Best Practices
+
+1. Fully implement all requested functionality without TODOs or placeholders
+2. Write reusable and highly readable code, prioritizing readability over performance
+3. Review code for clarity, reusability and maintainability
+4. Write clear, easy-to-understand comments
+
+### Testing
+
+1. Write unit tests for each Lambda function
+2. Test API endpoints according to their specifications
+3. Verify authentication flows work correctly
+4. Test frontend components for proper rendering and behavior

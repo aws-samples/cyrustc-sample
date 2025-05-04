@@ -1,0 +1,58 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Frontend Structure
+
+The frontend is a React application built with TypeScript and Vite.
+
+## Key Files
+
+- [frontend/src/main.tsx](mdc:frontend/src/main.tsx): Application entry point
+- [frontend/src/App.tsx](mdc:frontend/src/App.tsx): Main application component
+- [frontend/index.html](mdc:frontend/index.html): HTML entry point
+- [frontend/vite.config.ts](mdc:frontend/vite.config.ts): Vite configuration
+
+## Development Commands
+
+Run the following commands from the `frontend/` directory:
+
+- `npm run dev`: Start development server
+- `npm run build`: Build production app
+- `npm run preview`: Preview production build locally
+
+## Dependencies
+
+The project uses React 18, TypeScript, and Vite for the build system. See [frontend/package.json](mdc:frontend/package.json) for all dependencies.
+
+## Frontend Guidelines
+
+### Key Principles
+- Write concise, technical TypeScript code with accurate examples
+- Use functional and declarative programming patterns; avoid classes
+- Prefer iteration and modularization over code duplication
+- Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError)
+
+### Architecture and Structure
+- Follow feature-sliced design folder structure
+- Organize components by feature or domain
+- Keep related files close together
+- Separate UI components from business logic
+
+### Naming Conventions
+- Use lowercase with dashes for directories (e.g., components/auth-wizard)
+- Favor named exports for components
+- Use meaningful and descriptive names
+
+### TypeScript Usage
+- Use TypeScript for all code; prefer interfaces over types
+- Avoid enums; use maps instead
+- Use functional components with TypeScript interfaces
+- Define proper types for all props, state, and function parameters
+
+### Syntax and Formatting
+- Use the "function" keyword for pure functions
+- Avoid unnecessary curly braces in conditionals; use concise syntax for simple statements
+- Use declarative JSX
+- Maintain consistent code style and formatting
