@@ -50,10 +50,13 @@ export abstract class BaseStepFunction extends Construct implements IStepFunctio
     // Create dependencies (Lambda functions, etc.) before creating the workflow
     this.createDependencies();
     
+    // Create workflow definition
+    const workflowDefinition = this.createWorkflowDefinition();
+    
     // Create state machine with workflow definition
     this.stateMachine = new sfn.StateMachine(this, 'StateMachine', {
       stateMachineName: this.stateMachineName,
-      definition: this.createWorkflowDefinition(),
+      definitionBody: sfn.DefinitionBody.fromChainable(workflowDefinition),
       tracingEnabled: props.tracingEnabled ?? true,
       stateMachineType: props.stateMachineType ?? sfn.StateMachineType.STANDARD,
       logs: {

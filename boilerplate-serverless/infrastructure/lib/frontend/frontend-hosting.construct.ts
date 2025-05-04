@@ -1,7 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
-import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
+import { S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as path from "path";
@@ -123,15 +123,18 @@ export class FrontendHostingConstruct extends Construct {
       }
     );
 
+    // Create S3 bucket origin using the non-deprecated S3BucketOrigin class
+    const s3Origin = S3BucketOrigin.withOriginAccessIdentity(this.bucket, {
+      originAccessIdentity: this.originAccessIdentity,
+    });
+
     // Create CloudFront distribution
     this.distribution = new cloudfront.Distribution(
       this,
       "FrontendDistribution",
       {
         defaultBehavior: {
-          origin: new origins.S3Origin(this.bucket, {
-            originAccessIdentity: this.originAccessIdentity,
-          }),
+          origin: s3Origin,
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
@@ -145,9 +148,7 @@ export class FrontendHostingConstruct extends Construct {
         },
         additionalBehaviors: {
           "/cf-auth": {
-            origin: new origins.S3Origin(this.bucket, {
-              originAccessIdentity: this.originAccessIdentity,
-            }),
+            origin: s3Origin,
             edgeLambdas: [
               {
                 functionVersion: version,
@@ -158,9 +159,7 @@ export class FrontendHostingConstruct extends Construct {
               cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           },
           "/config": {
-            origin: new origins.S3Origin(this.bucket, {
-              originAccessIdentity: this.originAccessIdentity,
-            }),
+            origin: s3Origin,
             viewerProtocolPolicy:
               cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
             functionAssociations: [

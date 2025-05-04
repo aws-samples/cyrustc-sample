@@ -13,6 +13,7 @@ import {
   IDynamoDbEventSource
 } from '../../common/step-function';
 import { DynamoDBStack } from '../../stacks/dynamodb.stack';
+import { TableInterfaces } from '../../common/dynamodb';
 
 // Use the existing lambda-python construct from common directory
 import { LambdaPythonFunction } from '../../common/lambda-python.construct';
@@ -43,19 +44,22 @@ export class HelloWorldStepFunction extends BaseStepFunction implements IDynamoD
    * Create dependencies required for the workflow
    */
   protected createDependencies(): void {
+    // Get the helloWorld table from the registry
+    const helloWorldTable = this.dynamodbStack.getTable('helloWorld');
+    
     // Create the Lambda function
     this.lambdaFunction = new LambdaPythonFunction(this, 'HelloLambda', {
       entry: path.join(__dirname, 'hello-lambda'),
       layer: this.layer,
       environment: {
         ENVIRONMENT: this.node.tryGetContext('environment') || 'dev',
-        HELLO_WORLD_TABLE: this.dynamodbStack.helloWorldTable.table.tableName,
+        HELLO_WORLD_TABLE: helloWorldTable.tableName,
       },
       timeout: cdk.Duration.seconds(30),
     });
     
     // Grant read/write permissions to the Lambda function for the table
-    this.dynamodbStack.helloWorldTable.table.grantReadWriteData(this.lambdaFunction);
+    helloWorldTable.table.grantReadWriteData(this.lambdaFunction);
   }
   
   /**
@@ -96,8 +100,11 @@ export class HelloWorldStepFunction extends BaseStepFunction implements IDynamoD
    * Set up additional resources after the state machine is created
    */
   protected setupResources(): void {
+    // Get the helloWorld table from the registry
+    const helloWorldTable = this.dynamodbStack.getTable('helloWorld');
+    
     // Set up DynamoDB event source
-    this.setupDynamoDbEventSource(this.dynamodbStack.helloWorldTable.table);
+    this.setupDynamoDbEventSource(helloWorldTable.table);
   }
   
   /**
