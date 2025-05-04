@@ -22,6 +22,8 @@ export class HelloWorldTable extends Construct {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: isDevEnvironment ? cdk.RemovalPolicy.DESTROY : cdk.RemovalPolicy.RETAIN,
       pointInTimeRecovery: true,
+      // Enable DynamoDB streams for Step Function integration
+      stream: dynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
     });
   }
 } 

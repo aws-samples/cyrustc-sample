@@ -3,6 +3,7 @@ import { Construct } from "constructs";
 import { SecurityStack } from "./stacks/security.stack";
 import { ApiStack } from "./stacks/api.stack";
 import { DynamoDBStack } from "./stacks/dynamodb.stack";
+import { StepFunctionsStack } from "./stacks/step-functions.stack";
 
 export interface MainBackendStackProps extends cdk.StackProps {
   temporaryCloudFrontDomain: string;
@@ -16,11 +17,13 @@ export class MainBackendStack extends cdk.Stack {
   public readonly apiEndpoint: string;
   public readonly dynamodbStack: DynamoDBStack;
   public readonly apiStack: ApiStack;
+  public readonly stepFunctionsStack: StepFunctionsStack;
 
   constructor(scope: Construct, id: string, props: MainBackendStackProps) {
     super(scope, id, props);
 
     const environment = this.node.tryGetContext("environment") || "dev";
+    const prefix = this.node.id.toLowerCase();
 
     // Create the security nested stack with a temporary domain
     const securityStack = new SecurityStack(this, "SecurityStack", {
@@ -38,6 +41,14 @@ export class MainBackendStack extends cdk.Stack {
       description:
         "API nested stack containing API Gateway and Lambda functions",
       environment: environment,
+      dynamodbStack: this.dynamodbStack,
+    });
+
+    // Create the Step Functions stack
+    this.stepFunctionsStack = new StepFunctionsStack(this, "StepFunctionsStack", {
+      description: "Step Functions nested stack containing state machines",
+      environment: environment,
+      prefix: prefix,
       dynamodbStack: this.dynamodbStack,
     });
 
@@ -71,6 +82,12 @@ export class MainBackendStack extends cdk.Stack {
       value: this.apiEndpoint,
       description: "API Gateway Endpoint",
       exportName: `${id}-ApiEndpoint`,
+    });
+
+    new cdk.CfnOutput(this, "HelloWorldStepFunctionOutput", {
+      value: this.stepFunctionsStack.helloWorldStepFunction.stateMachine.stateMachineArn,
+      description: "Hello World Step Function ARN",
+      exportName: `${id}-HelloWorldStepFunction`,
     });
   }
 } 
