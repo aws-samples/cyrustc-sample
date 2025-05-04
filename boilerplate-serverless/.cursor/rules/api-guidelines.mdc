@@ -3,7 +3,38 @@ description:
 globs: 
 alwaysApply: true
 ---
-# API Design Guidelines
+# API Guidelines
+
+## Project Structure
+
+The backend API is built using Amazon API Gateway and AWS Lambda functions with Python.
+
+### Main Components
+
+- [infrastructure/lib/stacks/api.stack.ts](mdc:infrastructure/lib/stacks/api.stack.ts): API Gateway stack setup
+- [infrastructure/lib/api/rest-api-gateway.construct.ts](mdc:infrastructure/lib/api/rest-api-gateway.construct.ts): API Gateway construct
+
+### Lambda Functions
+
+Lambda functions follow a standardized structure using AWS Lambda Powertools:
+
+- [infrastructure/lib/api/hello/hello-api-resource.construct.ts](mdc:infrastructure/lib/api/hello/hello-api-resource.construct.ts): Example API endpoint setup
+- [infrastructure/lib/api/hello/hello-world/hello-world.py](mdc:infrastructure/lib/api/hello/hello-world/hello-world.py): Example Lambda function
+
+### API Pattern
+
+Each API endpoint follows this pattern:
+1. A TypeScript construct defines the API Gateway resource and Lambda function
+2. Python Lambda functions use AWS Lambda Powertools for logging, tracing, and event handling
+3. DynamoDB models follow a single-table design pattern with PK/SK keys
+
+### Development Workflow
+
+To add a new API endpoint:
+1. Create a new construct in the `api/` directory
+2. Create a Lambda function with required logic
+3. Add the construct to the API stack in `stacks/api.stack.ts`
+4. Update DynamoDB tables as needed in `stacks/dynamodb.stack.ts`
 
 ## RESTful API Design
 

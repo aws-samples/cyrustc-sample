@@ -4,6 +4,7 @@ import { SecurityStack } from "./stacks/security.stack";
 import { ApiStack } from "./stacks/api.stack";
 import { DynamoDBStack } from "./stacks/dynamodb.stack";
 import { StepFunctionsStack } from "./stacks/step-functions.stack";
+import { StorageStack } from "./stacks/storage.stack";
 
 export interface MainBackendStackProps extends cdk.StackProps {
   temporaryCloudFrontDomain: string;
@@ -18,6 +19,7 @@ export class MainBackendStack extends cdk.Stack {
   public readonly dynamodbStack: DynamoDBStack;
   public readonly apiStack: ApiStack;
   public readonly stepFunctionsStack: StepFunctionsStack;
+  public readonly storageStack: StorageStack;
 
   constructor(scope: Construct, id: string, props: MainBackendStackProps) {
     super(scope, id, props);
@@ -33,6 +35,12 @@ export class MainBackendStack extends cdk.Stack {
     // Create DynamoDB Stack first
     this.dynamodbStack = new DynamoDBStack(this, "DynamoDBStack", {
       description: "DynamoDB nested stack containing tables",
+      environment: environment,
+    });
+
+    // Create the Storage stack
+    this.storageStack = new StorageStack(this, "StorageStack", {
+      description: "Storage nested stack containing S3 buckets",
       environment: environment,
     });
 
@@ -90,5 +98,6 @@ export class MainBackendStack extends cdk.Stack {
       description: "Hello World Step Function ARN",
       exportName: `${id}-HelloWorldStepFunction`,
     });
+
   }
 } 

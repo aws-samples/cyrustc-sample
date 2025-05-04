@@ -58,7 +58,7 @@ This project uses AWS Step Functions for orchestrating workflows with a standard
 ## Base Architecture
 
 Step Functions use a common base class:
-[infrastructure/lib/common/step-function/base/base-step-function.ts](mdc:infrastructure/lib/common/step-function/base/base-step-function.ts)
+[infrastructure/core/step-function/base/base-step-function.ts](mdc:infrastructure/core/step-function/base/base-step-function.ts)
 
 The base class handles:
 - Initializing common properties like `dynamodbStack` and `layer`
