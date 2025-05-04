@@ -11,12 +11,12 @@ import {
   BaseStepFunction,
   StepFunctionProps,
   IDynamoDbEventSource
-} from '../../common/step-function';
+} from '../../../core/step-function';
 import { DynamoDBStack } from '../../stacks/dynamodb.stack';
-import { TableInterfaces } from '../../common/dynamodb';
+import { TableInterfaces } from '../../../core/dynamodb';
 
 // Use the existing lambda-python construct from common directory
-import { LambdaPythonFunction } from '../../common/lambda-python.construct';
+import { LambdaPythonFunction } from '../../../core/lambda-python.construct';
 
 /**
  * Properties for the HelloWorld Step Function

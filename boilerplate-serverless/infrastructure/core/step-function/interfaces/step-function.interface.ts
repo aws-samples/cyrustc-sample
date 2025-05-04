@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
-import { DynamoDBStack } from '../../../stacks/dynamodb.stack';
+import { DynamoDBStack } from '../../../lib/stacks/dynamodb.stack';
 
 /**
  * Properties for all Step Functions

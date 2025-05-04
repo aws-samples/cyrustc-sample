@@ -4,7 +4,7 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import { IStepFunction, StepFunctionProps } from '../interfaces/step-function.interface';
-import { DynamoDBStack } from '../../../stacks/dynamodb.stack';
+import { DynamoDBStack } from '../../../lib/stacks/dynamodb.stack';
 
 /**
  * Base class for all Step Functions

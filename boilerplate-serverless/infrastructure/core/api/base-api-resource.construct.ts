@@ -4,7 +4,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import { BaseApiResourceProps, ApiMethodOptions, ApiModelOptions } from './interfaces';
 import { LambdaPythonFunction } from '../lambda-python.construct';
-import { RestApiGateway } from '../../api/rest-api-gateway.construct';
+import { RestApiGateway } from '../../lib/api/rest-api-gateway.construct';
 
 /**
  * Base class for API resource constructs

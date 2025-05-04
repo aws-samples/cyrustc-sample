@@ -6,9 +6,9 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as path from "path";
 import { Construct } from "constructs";
-import { cfAuthFunction } from "./cf-auth.function";
-import { checkAuthFunction } from "./cf-check-auth.function";
-import { cfConfigFunction } from "./cf-config.function";
+import { cfAuthFunction } from "../../core/cloudfront/functions/cf-auth.function";
+import { checkAuthFunction } from "../../core/cloudfront/functions/cf-check-auth.function";
+import { cfConfigFunction } from "../../core/cloudfront/functions/cf-config.function";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 
 export interface FrontendHostingConstructProps {

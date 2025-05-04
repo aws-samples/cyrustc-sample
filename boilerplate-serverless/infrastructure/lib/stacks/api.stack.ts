@@ -3,7 +3,7 @@ import { Construct } from "constructs";
 import { RestApiGateway } from "../api/rest-api-gateway.construct";
 import { getConfig } from "../config/environment";
 import { HelloApiResource } from "../api/hello/hello-api-resource.construct";
-import { PythonLambdaLayer } from "../common/lambda-layer.construct";
+import { PythonLambdaLayer } from "../../core/lambda-layer.construct";
 import { NestedStack, NestedStackProps } from "aws-cdk-lib";
 import { DynamoDBStack } from "./dynamodb.stack";
 import * as cognito from "aws-cdk-lib/aws-cognito";

@@ -1,8 +1,8 @@
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as path from 'path';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
-import { BaseApiResource } from '../../common/api/base-api-resource.construct';
-import { BaseApiResourceProps } from '../../common/api/interfaces';
+import { BaseApiResource } from '../../../core/api/base-api-resource.construct';
+import { BaseApiResourceProps } from '../../../core/api/interfaces';
 import { RestApiGateway } from '../rest-api-gateway.construct';
 
 /**

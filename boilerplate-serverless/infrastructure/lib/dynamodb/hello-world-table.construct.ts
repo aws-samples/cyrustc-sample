@@ -1,7 +1,7 @@
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { Construct } from "constructs";
 import { Stack } from "aws-cdk-lib";
-import { BaseTable, TableInterfaces } from "../common/dynamodb";
+import { BaseTable, TableInterfaces } from "../../core/dynamodb";
 
 /**
  * Properties for the HelloWorld Table

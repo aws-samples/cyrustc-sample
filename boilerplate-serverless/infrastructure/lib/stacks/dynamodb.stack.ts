@@ -2,7 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { HelloWorldTable, HelloWorldTableProps } from "../dynamodb/hello-world-table.construct";
 import { NestedStack, NestedStackProps } from "aws-cdk-lib";
-import { TableInterfaces, BaseTable } from "../common/dynamodb";
+import { TableInterfaces, BaseTable } from "../../core/dynamodb";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 
 export interface DynamoDBStackProps extends NestedStackProps {

@@ -1,6 +1,6 @@
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { RestApiGateway } from '../../api/rest-api-gateway.construct';
+import { RestApiGateway } from '../../lib/api/rest-api-gateway.construct';
 
 /**
  * Base props for all API construct implementations

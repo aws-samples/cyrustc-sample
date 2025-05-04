@@ -4,7 +4,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 import { HelloWorldStepFunction } from '../step-functions/hello-world/_hello-world-sfn.construct';
 import { DynamoDBStack } from './dynamodb.stack';
-import { PythonLambdaLayer } from '../common/lambda-layer.construct';
+import { PythonLambdaLayer } from '../../core/lambda-layer.construct';
 
 export interface StepFunctionsStackProps extends cdk.NestedStackProps {
   prefix: string;
