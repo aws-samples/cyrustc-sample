@@ -12,7 +12,48 @@ The infrastructure code is organized using the AWS Cloud Development Kit (CDK) w
 - `infrastructure/bin/infrastructure.ts`: Main entry point
 - `infrastructure/lib/`: Contains all stacks and constructs
 - `infrastructure/lib/stacks/`: Nested stacks for modularity
-- `infrastructure/lib/*/`: Domain-specific constructs (security, frontend, api, etc.)
+- `infrastructure/core/`: Core constructs and base classes
+
+## Stack Organization
+
+The infrastructure is structured using nested stacks:
+- `infrastructure/lib/infrastructure-stack.ts`: Main stack
+- Domain-specific nested stacks:
+  - `infrastructure/lib/stacks/dynamodb.stack.ts`
+  - `infrastructure/lib/stacks/api.stack.ts`
+  - `infrastructure/lib/stacks/step-functions.stack.ts`
+
+## Construct Pattern
+
+Resources are organized as reusable constructs:
+- Each resource type gets its own construct
+- Constructs are combined in stacks
+- Properties are passed explicitly between constructs
+
+Example:
+```typescript
+// Create the hello world step function
+this.helloWorldStepFunction = new HelloWorldStepFunction(this, 'HelloWorldStepFunction', {
+  prefix: props.prefix,
+  environment: props.environment,
+  dynamodbStack: props.dynamodbStack, // Pass the entire DynamoDB stack
+  layer: this.lambdaLayer, // Pass the layer
+  tags: {
+    Service: 'StepFunctions',
+    Feature: 'HelloWorld'
+  }
+});
+```
+
+## Constructs Organization
+
+Constructs are grouped by domain/purpose:
+
+- `infrastructure/lib/api/`: API Gateway and Lambda functions
+- `infrastructure/lib/security/`: Cognito and other security resources
+- `infrastructure/lib/frontend/`: Frontend hosting infrastructure
+- `infrastructure/lib/stacks/`: Stack definitions
+- `infrastructure/core/`: Base constructs and utilities
 
 ## Key Principles
 
@@ -22,14 +63,23 @@ The infrastructure code is organized using the AWS Cloud Development Kit (CDK) w
 4. Apply proper environment-specific settings
 5. Enable monitoring, logging and tracing
 
-## Constructs Organization
+## Common Patterns
 
-Constructs are grouped by domain/purpose:
+1. **Property Management**:
+   - Common properties like `dynamodbStack` and `layer` are passed through constructors
+   - Base classes initialize shared properties for derived classes to use
 
-- `infrastructure/lib/api/`: API Gateway and Lambda functions
-- `infrastructure/lib/security/`: Cognito and other security resources
-- `infrastructure/lib/frontend/`: Frontend hosting infrastructure
-- `infrastructure/lib/dynamodb/`: Database tables and access patterns
+2. **Lifecycle Management**:
+   - Base classes manage the execution order of lifecycle methods
+   - Properties are initialized before dependent methods are called
+
+3. **Resource Naming**:
+   - Consistent naming with environment and prefix: `${prefix}-${resourceId}-${environment}`
+   - Clear pattern for CloudWatch resources: `/aws/vendedlogs/states/${stateMachineName}`
+
+4. **CloudFormation Outputs**:
+   - Important resources are exported as CloudFormation outputs
+   - Enables cross-stack references using `${id}-ResourceName` format
 
 ## Best Practices
 
@@ -38,13 +88,6 @@ Constructs are grouped by domain/purpose:
 - Enable logging and monitoring for all resources
 - Configure appropriate retention policies based on environment
 - Document cross-stack references and dependencies
-
-## Resource Naming
-
-- Use consistent naming patterns including environment info
-- Follow the pattern: `${id}-${resourceType}-${environment}`
-- Use descriptive names that indicate resource purpose
-- Avoid hardcoded names where possible
 
 ## Environment Configuration
 
@@ -63,6 +106,13 @@ this.table = new dynamodb.Table(this, "TableName", {
   // Other settings...
 });
 ```
+
+## Resource Naming
+
+- Use consistent naming patterns including environment info
+- Follow the pattern: `${id}-${resourceType}-${environment}`
+- Use descriptive names that indicate resource purpose
+- Avoid hardcoded names where possible
 
 ## Deployment Commands
 

@@ -5,45 +5,98 @@ alwaysApply: true
 ---
 # Project Structure
 
-This project follows a monorepo structure with two main components:
+This project follows a monorepo structure with a React frontend and AWS serverless infrastructure.
 
 ## Main Directories
 
 - `frontend/`: React application using TypeScript and Vite
 - `infrastructure/`: AWS CDK code for infrastructure as code
 
-## Backend (Infrastructure)
+## Core Entry Points
 
-The backend is built using AWS CDK with TypeScript.
+- Frontend: [frontend/src/main.tsx](mdc:frontend/src/main.tsx) renders [frontend/src/App.tsx](mdc:frontend/src/App.tsx)
+- Infrastructure: [infrastructure/bin/infrastructure.ts](mdc:infrastructure/bin/infrastructure.ts) is the CDK entry point
+
+## Infrastructure Organization
+
+### Entry Point
+
+- [infrastructure/bin/infrastructure.ts](mdc:infrastructure/bin/infrastructure.ts): CDK app entry point
+
+### Main Stack
+
+- [infrastructure/lib/infrastructure-stack.ts](mdc:infrastructure/lib/infrastructure-stack.ts): Main stack that orchestrates nested stacks
+
+### Nested Stacks
+
+- [infrastructure/lib/stacks/security.stack.ts](mdc:infrastructure/lib/stacks/security.stack.ts): AWS Cognito and security resources
+- [infrastructure/lib/stacks/frontend.stack.ts](mdc:infrastructure/lib/stacks/frontend.stack.ts): Frontend hosting infrastructure
+- [infrastructure/lib/stacks/api.stack.ts](mdc:infrastructure/lib/stacks/api.stack.ts): API Gateway configuration
+- [infrastructure/lib/stacks/dynamodb.stack.ts](mdc:infrastructure/lib/stacks/dynamodb.stack.ts): DynamoDB tables
+
+### Core Constructs
+
+- [infrastructure/core/](mdc:infrastructure/core/): Base classes and core functionality
+  - [infrastructure/core/step-function/](mdc:infrastructure/core/step-function/): Step Functions base classes
+  - [infrastructure/core/dynamodb/](mdc:infrastructure/core/dynamodb/): DynamoDB base classes
+  - [infrastructure/core/lambda-layer.construct.ts](mdc:infrastructure/core/lambda-layer.construct.ts): Shared Lambda layer
+
+### Domain-Specific Resources
+
+- [infrastructure/lib/api/](mdc:infrastructure/lib/api/): API Gateway resources and Lambda functions
+- [infrastructure/lib/security/](mdc:infrastructure/lib/security/): Cognito user pool and client setup
+- [infrastructure/lib/frontend/](mdc:infrastructure/lib/frontend/): CloudFront distribution for frontend
+
+## Frontend Organization
 
 ### Key Files and Directories
-- `infrastructure/bin/infrastructure.ts`: Main entry point for CDK application
-- `infrastructure/lib/infrastructure-stack.ts`: Main stack definition
-- `infrastructure/lib/stacks/`: Nested stacks organized by purpose
-- `infrastructure/lib/security/`: Security-related constructs
-- `infrastructure/lib/frontend/`: Frontend hosting constructs
+
+- [frontend/src/main.tsx](mdc:frontend/src/main.tsx): Application entry point
+- [frontend/src/App.tsx](mdc:frontend/src/App.tsx): Main application component
+- [frontend/src/components/](mdc:frontend/src/components/): Reusable UI components
+- [frontend/src/hooks/](mdc:frontend/src/hooks/): Custom React hooks
+- [frontend/src/services/](mdc:frontend/src/services/): API and service implementations
+- [frontend/src/utils/](mdc:frontend/src/utils/): Utility functions
 
 ### Organization Pattern
-- Each AWS resource should be defined as a reusable construct
-- Follow consistent naming conventions for all resources
-- Group related resources in appropriate directories
 
-## Frontend
-
-The frontend is a React application using TypeScript and Vite.
-
-### Key Files and Directories
-- `frontend/src/main.tsx`: Application entry point
-- `frontend/src/App.tsx`: Main application component
-- `frontend/src/components/`: Reusable UI components
-- `frontend/src/hooks/`: Custom React hooks
-- `frontend/src/services/`: API and service implementations
-- `frontend/src/utils/`: Utility functions
-
-### Organization Pattern
 - Organize components by feature or domain
 - Keep related files close together
 - Follow consistent naming and file structure
+
+## Development Commands
+
+### Infrastructure Development
+
+Run the following commands from the `infrastructure/` directory:
+
+- `npm run build`: Compile TypeScript to JavaScript
+- `npm run watch`: Watch for changes and compile
+- `npm run test`: Run tests
+- `npx cdk deploy`: Deploy the stack to AWS
+- `npx cdk diff`: Compare deployed stack with current state
+- `npx cdk synth`: Generate CloudFormation template
+
+### Frontend Development
+
+Run the following commands from the `frontend/` directory:
+
+- `npm run dev`: Start development server
+- `npm run build`: Build production app
+- `npm run preview`: Preview production build locally
+
+## Terminology
+
+- **Backend/Infrastructure**: The CDK stack in the infrastructure folder
+- **Frontend**: The React application in the frontend folder
+
+## General Guidelines
+
+1. Think step by step and document your thinking process
+2. Write reusable and highly readable code, prioritizing readability
+3. Completely implement all requested functionality without placeholders or TODOs
+4. Seek clarification when unsure rather than making assumptions
+5. Review code for clarity, reusability and maintainability
 
 ## Documentation
 - Include README files with setup instructions
