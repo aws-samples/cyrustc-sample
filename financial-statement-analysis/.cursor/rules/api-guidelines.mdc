@@ -1,0 +1,125 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# API Guidelines
+
+## Project Structure
+
+The backend API is built using Amazon API Gateway and AWS Lambda functions with Python.
+
+### Main Components
+
+- [infrastructure/lib/stacks/api.stack.ts](mdc:infrastructure/lib/stacks/api.stack.ts): API Gateway stack setup
+- [infrastructure/lib/api/rest-api-gateway.construct.ts](mdc:infrastructure/lib/api/rest-api-gateway.construct.ts): API Gateway construct
+
+### Lambda Functions
+
+Lambda functions follow a standardized structure using AWS Lambda Powertools:
+
+- [infrastructure/lib/api/hello/hello-api-resource.construct.ts](mdc:infrastructure/lib/api/hello/hello-api-resource.construct.ts): Example API endpoint setup
+- [infrastructure/lib/api/hello/hello-world/hello-world.py](mdc:infrastructure/lib/api/hello/hello-world/hello-world.py): Example Lambda function
+
+### API Pattern
+
+Each API endpoint follows this pattern:
+1. A TypeScript construct defines the API Gateway resource and Lambda function
+2. Python Lambda functions use AWS Lambda Powertools for logging, tracing, and event handling
+3. DynamoDB models follow a single-table design pattern with PK/SK keys
+
+### Development Workflow
+
+To add a new API endpoint:
+1. Create a new construct in the `api/` directory
+2. Create a Lambda function with required logic
+3. Add the construct to the API stack in `stacks/api.stack.ts`
+4. Update DynamoDB tables as needed in `stacks/dynamodb.stack.ts`
+
+## RESTful API Design
+
+### URL Design
+1. Use plural nouns for collection resources (e.g., `/products`)
+2. Use singular nouns for singleton resources (e.g., `/user/profile`)
+3. Use hyphens to separate words (e.g., `/product-categories`)
+4. Express URL paths in lowercase
+5. Use forward slashes to indicate hierarchical relationships (e.g., `/customers/{id}/orders`)
+6. Do not use trailing forward slashes in URIs
+7. Never use CRUD function names in URIs (avoid `/createProduct`, `/updateProduct`, etc.)
+8. Avoid verbs in URIs when possible; use HTTP methods instead
+
+### HTTP Methods
+- `GET`: Retrieve resources
+- `POST`: Create new resources
+- `PUT`: Update resources (full replacement)
+- `PATCH`: Update resources (partial modification)
+- `DELETE`: Remove resources
+
+## Filtering and Sorting
+
+### Filtering
+1. Use query string parameters for filtering (e.g., `?price=20`)
+2. Use short codes for comparison operators:
+   - `eq`: Equal (`?price=eq:20`)
+   - `neq`: Not equal (`?price=neq:20`)
+   - `gt`: Greater than (`?price=gt:20`)
+   - `gte`: Greater than or equal (`?price=gte:50`)
+   - `lt`: Less than (`?price=lt:20`)
+   - `lte`: Less than or equal (`?price=lte:20`)
+3. For range queries, use a hyphen (`?price=20-60`)
+
+### Sorting
+1. Use query string parameters for sorting
+2. Use short codes for sort order:
+   - `asc`: Ascending (`?sort=price:asc`)
+   - `desc`: Descending (`?sort=price:desc`)
+
+## Pagination
+
+1. Use query string parameters for pagination
+2. Return a `nextToken` property in the response; null if no more data
+3. Use the `nextToken` value for subsequent requests
+4. Include a `fetchedAt` timestamp (UTC in ISO 8601 format) in the response
+
+## Response Structure
+
+### Collection Responses
+```
+{
+  "meta": {
+    "fetchedAt": "2023-06-25T12:34:56Z",
+    "nextToken": "token123"
+  },
+  "items": [
+    { /* item 1 */ },
+    { /* item 2 */ }
+  ]
+}
+```
+
+### Single Item Responses
+```
+{
+  "meta": {
+    "fetchedAt": "2023-06-25T12:34:56Z"
+  },
+  "item": { /* item data */ }
+}
+```
+
+## Error Handling
+
+1. Use appropriate HTTP status codes
+2. Include descriptive error messages
+3. Return consistent error structure
+```
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid input data",
+    "details": [
+      { "field": "email", "message": "Invalid email format" }
+    ]
+  }
+}
+```

@@ -1,0 +1,135 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Error Handling Guidelines
+
+## Backend Error Handling
+
+### Lambda Functions
+
+Lambda functions should follow this error handling pattern:
+
+```python
+from aws_lambda_powertools.exceptions import ApiGatewayException
+
+class CustomError(ApiGatewayException):
+    status_code = 400
+    error_code = "VALIDATION_ERROR"
+    
+    def __init__(self, message: str):
+        super().__init__(message)
+
+@app.get("/resource")
+def get_resource():
+    try:
+        # Business logic
+        if not validate_input(input_data):
+            raise CustomError("Invalid input data")
+            
+        # Process request
+        return {"statusCode": 200, "body": {"result": data}}
+        
+    except CustomError as e:
+        # Custom errors are returned with their defined status code
+        raise
+    except Exception as e:
+        # Unexpected errors are logged and returned as 500
+        logger.exception("Unexpected error")
+        raise ApiGatewayException(
+            status_code=500,
+            error_code="INTERNAL_ERROR",
+            message="An unexpected error occurred"
+        )
+```
+
+### Error Response Structure
+
+All API errors should follow this structure:
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": [
+      {
+        "field": "fieldName",
+        "message": "Field-specific error"
+      }
+    ]
+  }
+}
+```
+
+## Frontend Error Handling
+
+### API Request Errors
+
+```tsx
+async function fetchData() {
+  try {
+    setLoading(true);
+    const response = await api.get('/resource');
+    setData(response.data);
+  } catch (error) {
+    if (error.response) {
+      // API error with response
+      setError(error.response.data.error);
+    } else if (error.request) {
+      // Network error
+      setError({ code: 'NETWORK_ERROR', message: 'Network error occurred' });
+    } else {
+      // Other errors
+      setError({ code: 'UNKNOWN_ERROR', message: 'An unknown error occurred' });
+    }
+  } finally {
+    setLoading(false);
+  }
+}
+```
+
+### Error Boundaries
+
+Use React Error Boundaries to catch and handle errors in component trees:
+
+```tsx
+class ErrorBoundary extends React.Component {
+  state = { hasError: false, error: null };
+  
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  
+  componentDidCatch(error, errorInfo) {
+    // Log error to monitoring service
+    logErrorToService(error, errorInfo);
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return <ErrorDisplay error={this.state.error} />;
+    }
+    
+    return this.props.children;
+  }
+}
+```
+
+## DynamoDB Error Handling
+
+```typescript
+try {
+  await dynamoClient.put({
+    TableName: tableName,
+    Item: item,
+    ConditionExpression: 'attribute_not_exists(pk)'
+  }).promise();
+} catch (error) {
+  if (error.code === 'ConditionalCheckFailedException') {
+    throw new Error('Item already exists');
+  }
+  throw error;
+}
+```

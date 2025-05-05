@@ -1,0 +1,133 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Storage Guidelines
+
+## Design Principles
+
+This project uses Amazon S3 for object storage with standardized constructs and patterns.
+
+## Base Bucket Structure
+
+Buckets are defined by extending the BaseBucket construct:
+[infrastructure/core/storage/base/base-bucket.construct.ts](mdc:infrastructure/core/storage/base/base-bucket.construct.ts)
+
+Key characteristics:
+- Environment-aware configuration
+- Default encryption and security settings
+- Auto-generated bucket names to avoid naming conflicts
+- Standardized tagging
+- Access control management
+
+## Inheritance Pattern
+
+S3 buckets follow the same inheritance pattern as DynamoDB tables and Step Functions:
+
+```typescript
+// S3 buckets extend BaseBucket
+export class SampleBucket extends BaseBucket {
+  constructor(scope: Construct, id: string, props?: SampleBucketProps) {
+    // Let CDK auto-generate the bucket name
+    super(scope, id, {
+      ...props,
+      cors: corsRules,
+      versioned: true,
+      tags: { Service: 'Storage', Feature: 'Sample' }
+    });
+  }
+}
+```
+
+## Bucket Registry Pattern
+
+Buckets are managed through a registry in the StorageStack:
+[infrastructure/lib/stacks/storage.stack.ts](mdc:infrastructure/lib/stacks/storage.stack.ts)
+
+This pattern allows:
+- Central management of all buckets
+- Consistent access via registry
+- Factory method for creating new buckets
+- Common environment settings
+
+## Creating Buckets
+
+Buckets can be created in two ways:
+
+### 1. Extending BaseBucket (Preferred)
+
+```typescript
+// Define a custom bucket by extending BaseBucket
+export class CustomBucket extends BaseBucket {
+  constructor(scope: Construct, id: string, props?: CustomBucketProps) {
+    super(scope, id, {
+      ...props,
+      // Let CDK generate bucket name by default
+      // Only set explicit bucket name if required
+      bucketName: props?.bucketName,
+      // Additional configuration...
+    });
+  }
+}
+
+// Create instance in StorageStack
+const customBucket = new CustomBucket(this, "CustomBucket", {
+  environment: this.environmentName
+});
+
+// Register with registry
+this.registerBucket('custom', customBucket);
+```
+
+### 2. Using the Factory Method
+
+```typescript
+// Create bucket using the factory method
+const staticAssetsBucket = this.createBucket('StaticAssets', {
+  versioned: true,
+  publicReadAccess: true,
+  cors: [
+    {
+      allowedMethods: [s3.HttpMethods.GET],
+      allowedOrigins: ['*'],
+      allowedHeaders: ['*'],
+    }
+  ]
+});
+
+// Bucket is automatically registered with ID 'StaticAssets'
+```
+
+## Accessing Buckets
+
+Buckets are accessed via the registry:
+
+```typescript
+// Get bucket from registry
+const sampleBucket = this.storageStack.getBucket('sample');
+
+// Access bucket properties
+sampleBucket.bucketName  // Auto-generated name by CDK
+sampleBucket.bucket.bucketArn
+
+// Grant permissions
+sampleBucket.grantReadWrite(lambdaFunction);
+```
+
+## Auto-Generated vs. Custom Bucket Names
+
+- **Prefer Auto-Generated Names**: Let CDK generate unique bucket names to avoid naming conflicts
+- **Use Custom Names Sparingly**: Only specify custom bucket names when absolutely necessary (e.g., for integration with external systems)
+
+## Environment-Specific Settings
+
+- Dev/Local environments: `RemovalPolicy.DESTROY` and `autoDeleteObjects: true` for easy cleanup
+- Staging/Production environments: `RemovalPolicy.RETAIN` to prevent data loss
+
+## Specialized Bucket Types
+
+- **AssetsBucket**: For public/protected assets, with CORS configured for web access
+- **DataBucket**: For private data storage with stricter security settings
+- **LogsBucket**: For application logs with appropriate retention policies
+- **ConfigBucket**: For application configuration with versioning enabled

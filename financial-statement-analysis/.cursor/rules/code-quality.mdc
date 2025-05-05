@@ -1,0 +1,53 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Code Quality Standards
+
+## General Principles
+
+1. Think step by step when solving problems
+2. Leave no TODOs, placeholders or missing pieces
+3. Create reusable code that is highly readable
+4. Focus on readability over being performant
+5. Seek clarification when unsure rather than guessing
+6. Review code for clarity, reusability and maintainability
+
+## Language-Specific Guidelines
+
+### TypeScript (Frontend and CDK)
+- Follow Airbnb JavaScript/TypeScript Style Guide
+- Use interfaces over types when possible
+- Use functional programming over object-oriented patterns
+- Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError)
+- Export named functions/components instead of default exports
+
+### Python (Lambda Functions)
+- Follow Google Python Style Guide
+- Use type hints for function parameters and return values
+- Use docstrings for functions and modules
+- Use lambda powertools for logging, tracing and metrics
+- Structure code logically with clear imports at the top
+
+## Documentation
+
+1. Follow Google Markdown Style Guide
+2. Use concise, technical language in comments and docs
+3. Document access patterns for databases
+4. Include examples for complex functionality
+5. Document data formats and schemas where applicable
+
+## Error Handling
+
+1. Use proper error handling instead of allowing exceptions to bubble up
+2. Log errors with appropriate context
+3. Return clear error messages to clients
+4. Handle edge cases explicitly
+
+## Testing
+
+1. Write unit tests for Lambda functions
+2. Test frontend components for proper rendering and behavior
+3. Verify API endpoints function according to specifications
+4. Test with realistic data that covers edge cases

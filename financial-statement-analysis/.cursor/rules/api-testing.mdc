@@ -1,0 +1,80 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# API Testing Guidelines
+
+## Test Structure
+
+Lambda function tests should be organized as follows:
+
+```
+infrastructure/lib/api/feature-name/lambda-name/tests/
+├── unit/
+│   ├── test_handler.py
+│   └── test_business_logic.py
+└── integration/
+    └── test_api_integration.py
+```
+
+## Unit Testing
+
+Unit tests should cover individual functions and business logic:
+
+```python
+import pytest
+from unittest.mock import patch, MagicMock
+
+def test_handler_returns_valid_response():
+    # Arrange
+    event = {"httpMethod": "GET", "path": "/resource"}
+    context = MagicMock()
+    
+    # Act
+    response = handler(event, context)
+    
+    # Assert
+    assert response["statusCode"] == 200
+    assert "body" in response
+```
+
+## Integration Testing
+
+Integration tests should verify the entire API flow:
+
+```python
+import requests
+import pytest
+
+def test_api_endpoint():
+    # Arrange
+    api_url = "https://api.example.com/resource"
+    
+    # Act
+    response = requests.get(api_url)
+    
+    # Assert
+    assert response.status_code == 200
+    assert "data" in response.json()
+```
+
+## Mocking
+
+Use pytest fixtures for common test setup:
+
+```python
+@pytest.fixture
+def dynamodb_client():
+    with patch("boto3.resource") as mock_resource:
+        mock_table = MagicMock()
+        mock_resource.return_value.Table.return_value = mock_table
+        yield mock_table
+```
+
+## Test Coverage
+
+- Aim for at least 80% test coverage
+- Test happy paths and error cases
+- Test edge cases and boundary conditions
+- Test authorization and authentication

@@ -1,0 +1,175 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# DynamoDB Guidelines
+
+## Design Principles
+
+The project follows a single-table design pattern for DynamoDB with standardized constructs and patterns.
+
+## Base Table Structure
+
+Tables are defined by extending the BaseTable construct:
+[infrastructure/core/dynamodb/base/base-table.construct.ts](mdc:infrastructure/core/dynamodb/base/base-table.construct.ts)
+
+Key characteristics:
+- Environment-aware configuration
+- Stream configuration for event-driven architecture
+- Support for GSIs and LSIs
+- Standardized tagging
+
+## Key Structure
+
+- Partition key (pk) and sort key (sk) naming convention
+- Use of prefixes to distinguish entity types (e.g., `USER#123`, `ORDER#456`)
+- Example table: [infrastructure/lib/dynamodb/hello-world-table.construct.ts](mdc:infrastructure/lib/dynamodb/hello-world-table.construct.ts)
+
+## Best Practices
+
+1. Use meaningful prefixes for primary keys to distinguish entity types
+2. Store related entities in the same table with different key patterns
+3. Use GSIs (Global Secondary Indexes) for additional access patterns
+4. Store all date/time values in ISO 8601 format and UTC timezone
+
+## Inheritance Pattern
+
+Both Step Functions and DynamoDB tables follow the same inheritance pattern:
+
+```typescript
+// DynamoDB tables extend BaseTable
+export class HelloWorldTable extends BaseTable {
+  constructor(scope: Construct, id: string, props?: HelloWorldTableProps) {
+    super(scope, id, {
+      environment: props?.environment || 'dev',
+      tableName: "HelloWorldTable",
+      // Additional configuration...
+    });
+  }
+}
+```
+
+## Table Registry Pattern
+
+Tables are managed through a registry in the DynamoDBStack:
+[infrastructure/lib/stacks/dynamodb.stack.ts](mdc:infrastructure/lib/stacks/dynamodb.stack.ts)
+
+This pattern allows:
+- Central management of all tables
+- Consistent access via registry
+- Factory method for creating new tables
+- Common environment settings
+
+## Creating Tables
+
+Tables can be created in two ways:
+
+### 1. Extending BaseTable (Preferred)
+
+```typescript
+// Define a custom table by extending BaseTable
+export class CustomTable extends BaseTable {
+  constructor(scope: Construct, id: string, props?: CustomTableProps) {
+    super(scope, id, {
+      environment: props?.environment,
+      tableName: "CustomTable",
+      // Configuration...
+    });
+  }
+}
+
+// Create instance in DynamoDBStack
+this.customTable = new CustomTable(this, "CustomTable", {
+  environment: this.environmentName
+});
+```
+
+### 2. Using the Factory Method
+
+```typescript
+// Create table using the factory method
+const usersTable = this.createTable('UsersTable', {
+  tableName: 'UsersTable',
+  partitionKey: {
+    name: 'userId',
+    type: dynamodb.AttributeType.STRING
+  },
+  // Additional configuration...
+});
+
+// Table is automatically registered with ID 'UsersTable'
+```
+
+## Table Creation Standard Pattern
+
+Tables are defined as CDK constructs following this pattern:
+
+```typescript
+this.table = new dynamodb.Table(this, "TableName", {
+  partitionKey: {
+    name: "pk",
+    type: dynamodb.AttributeType.STRING,
+  },
+  sortKey: {  // Optional
+    name: "sk",
+    type: dynamodb.AttributeType.STRING,
+  },
+  billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+  removalPolicy: isDevEnvironment ? 
+    cdk.RemovalPolicy.DESTROY : 
+    cdk.RemovalPolicy.RETAIN,
+  pointInTimeRecovery: true,
+});
+```
+
+## Python Data Models
+
+Lambda functions should use a data modeling library like PynamoDB or boto3.enhanced to interact with DynamoDB:
+
+```python
+class HelloWorld(Model):
+    class Meta:
+        table_name = os.environ['HELLO_WORLD_TABLE_NAME']
+        region = os.environ['AWS_REGION']
+        
+    pk = UnicodeAttribute(hash_key=True)
+    value = UnicodeAttribute(null=True)
+    
+    @staticmethod
+    def pk_format(id):
+        return f"HELLO#{id}"
+```
+
+## Accessing Tables
+
+Tables are accessed via the registry:
+
+```typescript
+// Get table from registry
+const helloWorldTable = this.dynamodbStack.getTable('helloWorld');
+
+// Access table properties
+helloWorldTable.tableName
+helloWorldTable.table.tableArn
+```
+
+## Step Function Integration
+
+Tables with streams are connected to Step Functions:
+[infrastructure/lib/step-functions/hello-world/_hello-world-sfn.construct.ts](mdc:infrastructure/lib/step-functions/hello-world/_hello-world-sfn.construct.ts)
+
+The process:
+1. Get table from registry
+2. Set up EventBridge Pipe to connect stream events to Step Function
+3. Grant necessary permissions for tables and streams
+
+## Environment-Specific Settings
+
+- Dev/Local environments: `RemovalPolicy.DESTROY` for easy cleanup
+- Staging/Production environments: `RemovalPolicy.RETAIN` to prevent data loss
+
+## Access Patterns
+- Document all access patterns
+- Design keys and indexes to support efficient querying
+- Consider and document composite key patterns

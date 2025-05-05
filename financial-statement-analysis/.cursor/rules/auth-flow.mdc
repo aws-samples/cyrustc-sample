@@ -1,0 +1,33 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Authentication Flow
+
+The application uses Amazon Cognito for authentication with CloudFront functions for protecting routes.
+
+## Key Components
+
+- [infrastructure/lib/security/cognito.construct.ts](mdc:infrastructure/lib/security/cognito.construct.ts): Cognito user pool setup
+- [infrastructure/lib/frontend/cf-auth.function.ts](mdc:infrastructure/lib/frontend/cf-auth.function.ts): CloudFront auth function
+- [infrastructure/lib/frontend/cf-check-auth.function.ts](mdc:infrastructure/lib/frontend/cf-check-auth.function.ts): CloudFront auth check function
+
+## Flow Overview
+
+1. Users access the application through CloudFront
+2. CloudFront Function (`cf-check-auth.function.ts`) checks for authentication cookies
+3. If not authenticated, users are redirected to Cognito login
+4. After login, Cognito redirects back to `/cf-auth` path
+5. Lambda@Edge function (`cf-auth.function.ts`) handles the callback:
+   - Exchanges the authorization code for tokens
+   - Sets authentication cookies
+   - Redirects to the application
+6. For subsequent requests, the CloudFront Function validates the session
+
+## Implementation Details
+
+The frontend is protected by CloudFront functions that validate users are authenticated:
+- The main CloudFront distribution uses the `CheckAuthFunction` to verify authentication for all requests
+- A dedicated path `/cf-auth` uses the `AuthEdgeFunction` to handle Cognito callbacks
+- The `UpdateCallbackUrlsConstruct` updates the Cognito callback URLs dynamically after CloudFront is deployed
