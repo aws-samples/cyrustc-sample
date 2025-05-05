@@ -5,9 +5,18 @@ import { BaseLayout } from '@/shared/ui/base-layout';
 interface AppLayoutProps {
   children: ReactNode;
   activePage?: 'dashboard' | 'extractions';
+  splitPanel?: ReactNode;
+  splitPanelOpen?: boolean;
+  onSplitPanelToggle?: (open: boolean) => void;
 }
 
-export function AppLayout({ children, activePage }: AppLayoutProps) {
+export function AppLayout({ 
+  children, 
+  activePage,
+  splitPanel,
+  splitPanelOpen,
+  onSplitPanelToggle
+}: AppLayoutProps) {
   
   const navigation = {
     header: { text: 'Extractions', href: '/' },
@@ -58,6 +67,9 @@ export function AppLayout({ children, activePage }: AppLayoutProps) {
         />
       }
       contentType={contentType}
+      splitPanel={splitPanel}
+      splitPanelOpen={splitPanelOpen}
+      onSplitPanelToggle={onSplitPanelToggle}
     >
       {children}
     </BaseLayout>

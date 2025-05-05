@@ -13,9 +13,20 @@ interface BaseLayoutProps extends PropsWithChildren {
   }
   breadcrumbs?: ReactNode
   contentType?: 'default' | 'table' | 'form' | 'cards' | 'wizard' | 'dashboard'
+  splitPanel?: ReactNode
+  splitPanelOpen?: boolean
+  onSplitPanelToggle?: (open: boolean) => void
 }
 
-export function BaseLayout({ children, navigation, breadcrumbs, contentType = 'default' }: BaseLayoutProps) {
+export function BaseLayout({ 
+  children, 
+  navigation, 
+  breadcrumbs, 
+  contentType = 'default',
+  splitPanel,
+  splitPanelOpen,
+  onSplitPanelToggle
+}: BaseLayoutProps) {
   const [navigationOpen, setNavigationOpen] = useState(true)
 
   return (
@@ -30,6 +41,12 @@ export function BaseLayout({ children, navigation, breadcrumbs, contentType = 'd
           <Flashbar items={[]} />
         }
         contentType={contentType}
+        splitPanel={splitPanel}
+        splitPanelOpen={splitPanelOpen}
+        onSplitPanelToggle={onSplitPanelToggle ? 
+          ({ detail }) => onSplitPanelToggle(detail.open) : 
+          undefined
+        }
       />
     </I18nProvider>
   )
