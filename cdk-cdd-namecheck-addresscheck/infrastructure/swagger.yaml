@@ -1,0 +1,779 @@
+openapi: 3.0.0
+info:
+  title: Document Analysis API
+  version: 1.0.0
+  description: API for document analysis service
+
+paths:
+  /analyses:
+    post:
+      summary: Create new analysis
+      description: Creates a new analysis record with default values
+      operationId: createAnalysis
+      responses:
+        '200':
+          description: Analysis created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - analysisId
+                  - status
+                  - createdAt
+                properties:
+                  analysisId:
+                    type: string
+                    format: uuid
+                    description: Unique identifier for the analysis
+                  status:
+                    type: string
+                    enum: [PENDING]
+                    description: Initial status of the analysis
+                  createdAt:
+                    type: string
+                    format: date-time
+                    description: Creation timestamp in ISO 8601 format
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    get:
+      summary: List analyses
+      description: Returns a paginated list of analyses
+      operationId: listAnalyses
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of items to return (1-100)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: nextToken
+          in: query
+          description: Token for pagination
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of analyses
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - fetchedAt
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AnalysisListItem'
+                  nextToken:
+                    type: string
+                    description: Token for retrieving the next page
+                  fetchedAt:
+                    type: string
+                    format: date-time
+                    description: Timestamp when data was retrieved
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /analyses/{analysis_id}/upload-urls:
+    post:
+      summary: Generate upload URLs
+      description: Generates presigned URLs for uploading documents
+      operationId: generateUploadUrls
+      parameters:
+        - name: analysis_id
+          in: path
+          description: Analysis ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fileCount
+              properties:
+                fileCount:
+                  type: integer
+                  minimum: 1
+                  description: Number of upload URLs to generate
+      responses:
+        '200':
+          description: Generated upload URLs
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - urls
+                  - expiresIn
+                  - generatedAt
+                properties:
+                  urls:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - url
+                        - key
+                      properties:
+                        url:
+                          type: string
+                          description: Presigned URL for upload
+                        key:
+                          type: string
+                          description: S3 object key
+                  expiresIn:
+                    type: integer
+                    description: URL expiration time in seconds
+                  generatedAt:
+                    type: string
+                    format: date-time
+                    description: Timestamp when URLs were generated
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Analysis not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /analyses/{analysis_id}/start:
+    post:
+      summary: Start analysis
+      description: Updates analysis status to start processing
+      operationId: startAnalysis
+      parameters:
+        - name: analysis_id
+          in: path
+          description: Analysis ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - objectKeys
+              properties:
+                objectKeys:
+                  type: array
+                  items:
+                    type: string
+                  description: List of S3 object keys to analyze
+      responses:
+        '200':
+          description: Analysis started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - updatedAt
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Analysis'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    description: Timestamp of the update
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Analysis not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /onboarding:
+    post:
+      summary: Create a new onboarding request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - firstName
+                - lastName
+                - dateOfBirth
+                - phoneNumber
+                - address
+                - country
+                - analysisId
+                - documents
+              properties:
+                email:
+                  type: string
+                  format: email
+                firstName:
+                  type: string
+                middleName:
+                  type: string
+                lastName:
+                  type: string
+                dateOfBirth:
+                  type: string
+                  format: date
+                phoneNumber:
+                  type: string
+                address:
+                  type: string
+                country:
+                  type: string
+                analysisId:
+                  type: string
+                  format: uuid
+                  description: ID of the associated document analysis
+                documents:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                  description: Array of document S3 keys
+      responses:
+        '201':
+          description: Onboarding request created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - requestId
+                  - status
+                  - analysisId
+                  - documents
+                  - createdAt
+                properties:
+                  requestId:
+                    type: string
+                  status:
+                    type: string
+                    enum: [NEW]
+                  analysisId:
+                    type: string
+                    format: uuid
+                  documents:
+                    type: array
+                    items:
+                      type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+
+    get:
+      summary: List onboarding requests
+      description: Returns a paginated list of onboarding requests, sorted by creation date (newest first)
+      operationId: listOnboardingRequests
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of items to return (1-100)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: nextToken
+          in: query
+          description: Token for pagination
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of onboarding requests
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - fetchedAt
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - onboardingId
+                        - firstName
+                        - email
+                        - country
+                        - status
+                        - createdAt
+                        - lastUpdatedAt
+                      properties:
+                        onboardingId:
+                          type: string
+                        firstName:
+                          type: string
+                          description: Combined first and last name
+                        email:
+                          type: string
+                        country:
+                          type: string
+                        status:
+                          type: string
+                          enum: [PENDING, IN_PROGRESS, COMPLETED, REJECTED]
+                          default: PENDING
+                        createdAt:
+                          type: string
+                          format: date-time
+                        lastUpdatedAt:
+                          type: string
+                          format: date-time
+                        assignedTo:
+                          type: string
+                          description: Email of the assigned reviewer
+                  nextToken:
+                    type: string
+                    description: Token for retrieving the next page
+                  fetchedAt:
+                    type: string
+                    format: date-time
+                    description: Timestamp when data was retrieved
+
+  /onboarding/{request_id}:
+    get:
+      summary: Get onboarding request by ID
+      description: Returns detailed information about a specific onboarding request
+      operationId: getOnboardingRequest
+      parameters:
+        - name: request_id
+          in: path
+          description: Onboarding request ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Onboarding request details
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - fetchedAt
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - requestId
+                      - email
+                      - firstName
+                      - lastName
+                      - dateOfBirth
+                      - phoneNumber
+                      - address
+                      - country
+                      - status
+                      - analysisId
+                      - documents
+                      - createdAt
+                      - updatedAt
+                    properties:
+                      requestId:
+                        type: string
+                      email:
+                        type: string
+                      firstName:
+                        type: string
+                      middleName:
+                        type: string
+                      lastName:
+                        type: string
+                      dateOfBirth:
+                        type: string
+                        format: date
+                      phoneNumber:
+                        type: string
+                      address:
+                        type: string
+                      country:
+                        type: string
+                      status:
+                        type: string
+                        enum: [NEW, CHECKING, READY_TO_CHECK, APPROVED, REJECTED, CLARIFICATION]
+                      analysisId:
+                        type: string
+                        format: uuid
+                      documents:
+                        type: array
+                        items:
+                          type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  fetchedAt:
+                    type: string
+                    format: date-time
+                    description: Timestamp when data was retrieved
+        '404':
+          description: Onboarding request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /analyses/{analysis_id}:
+    get:
+      summary: Get analysis by ID
+      description: Returns detailed information about a specific analysis
+      operationId: getAnalysis
+      parameters:
+        - name: analysis_id
+          in: path
+          description: Analysis ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Analysis details
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - fetchedAt
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Analysis'
+                  fetchedAt:
+                    type: string
+                    format: date-time
+                    description: Timestamp when data was retrieved
+        '404':
+          description: Analysis not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /documents/get-url:
+    post:
+      summary: Generate pre-signed URL for reading a document
+      description: Generates a pre-signed URL valid for 60 seconds to read a document from S3
+      operationId: getDocumentUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                objectKey:
+                  type: string
+                  description: The S3 object key of the document
+              required:
+                - objectKey
+      responses:
+        '200':
+          description: Pre-signed URL generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    description: The pre-signed URL
+                  expiresIn:
+                    type: integer
+                    description: URL expiration time in seconds
+        '400':
+          description: Invalid request parameters
+        '500':
+          description: Internal server error
+
+  /onboarding/email/generate:
+    post:
+      summary: Generate email content for onboarding communications
+      operationId: generateOnboardingEmail
+      tags:
+        - onboarding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - issue
+              properties:
+                issue:
+                  type: string
+                  description: Description of the issue to address in the email
+      responses:
+        '200':
+          description: Successfully generated email content
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - content
+                  - thinking
+                  - inputToken
+                  - outputToken
+                properties:
+                  content:
+                    type: string
+                    description: Generated email content from response tag
+                  thinking:
+                    type: string
+                    description: Thinking process from thinking tag
+                  inputToken:
+                    type: integer
+                    description: Number of input tokens used
+                  outputToken:
+                    type: integer
+                    description: Number of output tokens used
+        '400':
+          description: Invalid request parameters
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+
+    AnalysisStatus:
+      type: string
+      enum:
+        - PENDING
+        - STARTED
+        - PROCESSING
+        - PROCESSED
+        - ERROR
+      
+    DocumentType:
+      type: string
+      enum:
+        - MIXED
+        - BANK_STATEMENT
+        - ANNUAL_REPORT
+
+    AnalysisListItem:
+      type: object
+      required:
+        - analysisId
+        - createdAt
+        - description
+        - documentType
+        - status
+        - lastUpdatedAt
+      properties:
+        analysisId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        description:
+          type: string
+        documentType:
+          $ref: '#/components/schemas/DocumentType'
+        status:
+          $ref: '#/components/schemas/AnalysisStatus'
+        lastUpdatedAt:
+          type: string
+          format: date-time
+
+    Analysis:
+      type: object
+      required:
+        - analysisId
+        - description
+        - documentType
+        - objectsData
+        - chatHistory
+        - status
+        - createdAt
+        - lastUpdatedAt
+        - yearMonth
+      properties:
+        analysisId:
+          type: string
+          format: uuid
+        description:
+          type: string
+        documentType:
+          $ref: '#/components/schemas/DocumentType'
+        objectsData:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObjectData'
+        chatHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+        status:
+          $ref: '#/components/schemas/AnalysisStatus'
+        yearMonth:
+          type: string
+          description: Year and month in YYYY-MM format
+        createdAt:
+          type: string
+          format: date-time
+        lastUpdatedAt:
+          type: string
+          format: date-time
+        analysisParameters:
+          type: object
+          additionalProperties: true
+          description: Optional parameters for the analysis
+        analysisResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnalysisResult'
+
+    AnalysisResult:
+      type: object
+      required:
+        - analysis
+        - result
+        - inputToken
+        - outputToken
+      properties:
+        analysis:
+          type: string
+        result:
+          type: string
+        inputToken:
+          type: integer
+        outputToken:
+          type: integer
+
+    ObjectData:
+      type: object
+      required:
+        - object
+        - data
+        - numberOfPages
+        - tokenInput
+        - tokenOutput
+      properties:
+        object:
+          type: string
+          description: S3 object key
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageData'
+        numberOfPages:
+          type: integer
+        tokenInput:
+          type: integer
+        tokenOutput:
+          type: integer
+
+    PageData:
+      type: object
+      required:
+        - page
+        - content
+        - tokenInput
+        - tokenOutput
+      properties:
+        page:
+          type: integer
+        content:
+          type: string
+        tokenInput:
+          type: integer
+        tokenOutput:
+          type: integer
+
+    ChatMessage:
+      type: object
+      required:
+        - role
+        - content
+        - timestamp
+      properties:
+        role:
+          type: string
+          enum:
+            - human
+            - assistant
+        content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time 

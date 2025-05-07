@@ -1,0 +1,49 @@
+.footer {
+  background-color: #111827;
+  border-top: 1px solid #1f2937;
+}
+
+.container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+}
+
+.grid {
+  display: grid;
+  gap: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.linkList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.link {
+  color: #9ca3af;
+  text-decoration: none;
+  transition: color 0.2s;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.copyright {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #1f2937;
+  text-align: center;
+  color: #9ca3af;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+} 
