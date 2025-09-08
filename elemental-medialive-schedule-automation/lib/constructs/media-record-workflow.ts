@@ -31,7 +31,7 @@ export class MediaRecordWorkflow extends Construct {
 
     // Create validation Lambda
     this.validationFunction = new lambda.Function(this, 'ValidationFunction', {
-      runtime: lambda.Runtime.PYTHON_3_9,
+      runtime: lambda.Runtime.PYTHON_3_13,
       handler: 'index.handler',
       code: lambda.Code.fromAsset('lambda/validation'),
       timeout: cdk.Duration.seconds(30),

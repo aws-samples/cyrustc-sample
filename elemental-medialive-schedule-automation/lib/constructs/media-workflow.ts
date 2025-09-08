@@ -136,6 +136,7 @@ export class MediaWorkflow extends Construct {
         startDateTime: sfn.JsonPath.stringAt('$.startDateTime'),
         endDateTime: sfn.JsonPath.stringAt('$.endDateTime'),
         channelInfo: sfn.JsonPath.stringAt('$.channelInfo'),
+        resetChannelResult: sfn.JsonPath.stringAt('$.resetChannelResult'),
       }),
       subject: 'MediaLive Channel Stopped',
       resultPath: '$.NotificationResult',
@@ -143,15 +144,37 @@ export class MediaWorkflow extends Construct {
 
     // Create health check lambda
     const healthCheckLambda = new lambda.Function(this, 'HealthCheckFunction', {
-      runtime: lambda.Runtime.PYTHON_3_9,
+      runtime: lambda.Runtime.PYTHON_3_13,
       handler: 'index.handler',
       code: lambda.Code.fromAsset('lambda/health-check'),
       timeout: cdk.Duration.seconds(30),
     });
 
+    // Create reset channel state lambda
+    const resetChannelStateLambda = new lambda.Function(this, 'ResetChannelStateFunction', {
+      runtime: lambda.Runtime.PYTHON_3_13,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset('lambda/reset-channel-state'),
+      timeout: cdk.Duration.seconds(60),
+    });
+
+    // Grant MediaPackage V2 permissions to the reset lambda
+    resetChannelStateLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ['mediapackagev2:ResetChannelState'],
+        resources: ['*'],
+      }),
+    );
+
     // Create health check task
     const checkChannelHealth = new tasks.LambdaInvoke(this, 'Check Channel Health', {
       lambdaFunction: healthCheckLambda,
+      payloadResponseOnly: true,
+    });
+
+    // Create reset channel state task
+    const resetChannelState = new tasks.LambdaInvoke(this, 'Reset Channel State', {
+      lambdaFunction: resetChannelStateLambda,
       payloadResponseOnly: true,
     });
 
@@ -180,7 +203,7 @@ export class MediaWorkflow extends Construct {
       .otherwise(publishStartingNotification);
 
     const checkStoppedState = new sfn.Choice(this, 'Get Channel State (Stopping)')
-      .when(sfn.Condition.stringEquals('$.ChannelState.State', 'IDLE'), publishStoppedNotification)
+      .when(sfn.Condition.stringEquals('$.ChannelState.State', 'IDLE'), resetChannelState)
       .otherwise(waitForChannelStop);
 
     // Chain the steps together
@@ -192,6 +215,7 @@ export class MediaWorkflow extends Construct {
     stopChannel.next(waitForChannelStop);
     waitForChannelStop.next(checkChannelStateForStop);
     checkChannelStateForStop.next(checkStoppedState);
+    resetChannelState.next(publishStoppedNotification);
 
     // Create the state machine
     this.stateMachine = new sfn.StateMachine(this, 'StateMachine', {
